@@ -1,7 +1,13 @@
 import { computed } from 'vue'
+import type { Table } from './useTables'
+
+export interface Person {
+  name: string
+  table?: Table['id'] | null
+}
 
 export default function usePeople() {
-  const people = computed(() => {
+  const people = computed<Person[]>(() => {
     return [
       { name: 'John Smith', table: null },
       { name: 'Emma Johnson', table: null },
