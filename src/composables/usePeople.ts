@@ -24,7 +24,11 @@ export default function usePeople() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(people.value))
   }
 
-  return { people, save }
+  function moveBackToPending(newPeople: Person[]) {
+    people.value.push(...newPeople)
+  }
+
+  return { people, save, moveBackToPending }
 }
 
 const FAKER = [

@@ -3,6 +3,8 @@ import type { Table } from '@/composables/useTables'
 import { ChevronRight } from '@lucide/vue'
 import draggable from 'vuedraggable'
 import Person from './Person.vue'
+import Button from './ui/button/Button.vue'
+import { Trash } from 'lucide-vue-next'
 
 const isOpen = defineModel('open', {
   default: true,
@@ -11,10 +13,12 @@ const isOpen = defineModel('open', {
 const props = defineProps<{
   table: Table
 }>()
+
+defineEmits(['delete'])
 </script>
 
 <template>
-  <div class="px-4 py-2 my-2 rounded-lg shadow-sm border border-neutral-50">
+  <div class="px-4 py-2 my-2 rounded-lg shadow-sm border border-neutral-50 relative">
     <div class="flex items-center justify-between cursor-pointer" @click="isOpen = !isOpen">
       <div class="flex gap-2 items-center">
         <ChevronRight
@@ -27,7 +31,9 @@ const props = defineProps<{
       </div>
 
       <div class="flex items-center justify-center gap-2 text-xs">
-        <span> Count</span> {{ table.people.length ?? 0 }}
+        <Button @click="$emit('delete', $event)" variant="destructive" size="icon-sm">
+          <Trash></Trash>
+        </Button>
       </div>
     </div>
 
@@ -55,6 +61,12 @@ const props = defineProps<{
       >
         Drag & Drop Person
       </div>
+    </div>
+    <div
+      class="flex items-center justify-center gap-1 text-xs"
+      :class="[isOpen ? 'mt-2' : 'absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2']"
+    >
+      <span> Count:</span> {{ table.people.length ?? 0 }}
     </div>
   </div>
 </template>
