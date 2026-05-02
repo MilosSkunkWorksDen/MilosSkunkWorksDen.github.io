@@ -9,7 +9,13 @@ import { nextTick, ref, watch } from 'vue'
 import draggable from 'vuedraggable'
 
 const { people, save: savePeople, moveBackToPending } = usePeople()
-const { tables, save: saveTables, remove: removeTable, addNew: addNewTable } = useTables(1)
+const {
+  tables,
+  save: saveTables,
+  remove: removeTable,
+  addNew: addNewTable,
+  update: updateTable,
+} = useTables(1)
 
 const tablesListRef = ref<HTMLDivElement>()
 
@@ -42,6 +48,10 @@ function handleRemoveTable(table: Table) {
     removeTable(table.id)
     moveBackToPending(table.people)
   }
+}
+
+function handleUpdateTable(table: Table) {
+  updateTable(table)
 }
 
 watch(tables, (val) => {
@@ -87,6 +97,7 @@ watch(tables, (val) => {
       >
         <TableComponent
           @delete.prevent.stop="handleRemoveTable(t)"
+          @update.prevent.stop="handleUpdateTable"
           v-for="(t, index) in tables"
           :table="t"
           :key="t.id"

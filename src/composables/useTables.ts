@@ -48,6 +48,10 @@ export default function useTables(count: number) {
     tables.value = [...tables.value.filter((t) => t.id !== id)]
   }
 
+  function update(table: Table) {
+    tables.value = [...tables.value.map((t) => (t.id == table.id ? table : t))]
+  }
+
   function addNew() {
     tables.value.push({
       id: getUniqueId(),
@@ -56,5 +60,5 @@ export default function useTables(count: number) {
     })
   }
 
-  return { tables, save, remove, addNew }
+  return { tables, save, remove, addNew, update }
 }

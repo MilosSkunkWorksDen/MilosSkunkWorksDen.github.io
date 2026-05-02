@@ -5,6 +5,8 @@ import draggable from 'vuedraggable'
 import Person from './Person.vue'
 import Button from './ui/button/Button.vue'
 import { Trash } from 'lucide-vue-next'
+import { Input } from '@/components/ui/input'
+import { ref } from 'vue'
 
 const isOpen = defineModel('open', {
   default: true,
@@ -14,18 +16,29 @@ const props = defineProps<{
   table: Table
 }>()
 
-defineEmits(['delete'])
+defineEmits(['delete', 'update'])
+
+const isEditingName = ref(false)
 </script>
 
 <template>
   <div class="px-4 py-2 my-2 rounded-lg shadow-sm border border-neutral-50 relative">
-    <div class="flex items-center justify-between cursor-pointer" @click="isOpen = !isOpen">
+    <div class="flex items-center justify-between">
       <div class="flex gap-2 items-center">
         <ChevronRight
-          class="size-4 transition-transform duration-200"
+          @click="isOpen = !isOpen"
+          class="size-4 transition-transform duration-200 cursor-pointer"
           :class="{ 'rotate-90': isOpen }"
         />
-        <span>
+
+        <Input
+          v-if="isEditingName"
+          type="email"
+          placeholder="Email"
+          :default-value="table.name"
+          class="h-4!"
+        />
+        <span v-if="!isEditingName" @click.stop.prevent="isEditingName = true">
           {{ table.name }}
         </span>
       </div>
