@@ -12,11 +12,14 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "@handsontable/vue3": "^17.0.1",
+    "@jspreadsheet-ce/vue": "^5.0.1",
     "@lucide/vue": "^1.14.0",
     "@tailwindcss/vite": "^4.2.4",
     "@vueuse/core": "^14.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "handsontable": "^17.0.1",
     "lucide-vue-next": "^1.0.0",
     "reka-ui": "^2.9.6",
     "tailwind-merge": "^3.5.0",

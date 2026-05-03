@@ -2,7 +2,7 @@
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
 import router from './router'
-import { Camera, Home, Info, InfoIcon, Table } from '@lucide/vue'
+import { Camera, Home, Info, InfoIcon, Table, Users } from '@lucide/vue'
 import Link from './components/Link.vue'
 import SidebarNavigation from './components/SidebarNavigation.vue'
 </script>
@@ -21,8 +21,7 @@ import SidebarNavigation from './components/SidebarNavigation.vue'
         <div class="px-2 text-xs h-8 text-black/60 flex justify-start items-center">Platform</div>
         <div class="text-sm flex flex-col gap-1 px-2">
           <SidebarNavigation href="/" title="Home" :icon="Home" />
-          <SidebarNavigation href="/about" title="About" :icon="InfoIcon" />
-          <SidebarNavigation href="/assigner" title="Assigner" :icon="Table" />
+          <SidebarNavigation href="/people" title="People" :icon="Users" />
         </div>
       </div>
     </div>
