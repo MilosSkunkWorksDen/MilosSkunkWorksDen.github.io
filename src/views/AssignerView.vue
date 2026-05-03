@@ -15,7 +15,7 @@ const {
   remove: removeTable,
   addNew: addNewTable,
   update: updateTable,
-} = useTables(1)
+} = useTables(people)
 
 const tablesListRef = ref<HTMLDivElement>()
 
@@ -27,6 +27,7 @@ function handleSave() {
 
 async function handleAddTable() {
   addNewTable()
+  saveTables()
 }
 
 function onAfterEnter(el: Element) {
@@ -44,19 +45,22 @@ function onAfterEnter(el: Element) {
 function handleRemoveTable(table: Table) {
   if (table.people.length == 0) {
     removeTable(table.id)
+    saveTables()
   } else if (confirm(`Table ${table.name} has people sitting. Are you sure ?`)) {
     removeTable(table.id)
     moveBackToPending(table.people)
+    saveTables()
   }
 }
 
 function handleUpdateTable(table: Table) {
   updateTable(table)
+  saveTables()
 }
 
-watch(tables, (val) => {
-  console.log({ ...val })
-})
+// watch(tables, (val) => {
+//   console.log({ ...val })
+// })
 </script>
 
 <template>
@@ -96,8 +100,8 @@ watch(tables, (val) => {
         leave-to-class="opacity-0"
       >
         <TableComponent
-          @delete.prevent.stop="handleRemoveTable(t)"
-          @update.prevent.stop="handleUpdateTable"
+          @delete="handleRemoveTable(t)"
+          @update="handleUpdateTable"
           v-for="(t, index) in tables"
           :table="t"
           :key="t.id"

@@ -9,14 +9,17 @@ export interface Person {
 const STORAGE_KEY = 'people'
 
 export default function usePeople() {
-  const people = ref<Person[]>(get(FAKER))
+  const people = ref<Person[]>(load())
 
-  function get<T>(fallback: T): T {
+  function load() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      return raw ? JSON.parse(raw) : fallback
+      if (!raw) return []
+
+      const parsed = JSON.parse(raw)
+      return parsed
     } catch (e) {
-      return fallback
+      return []
     }
   }
 

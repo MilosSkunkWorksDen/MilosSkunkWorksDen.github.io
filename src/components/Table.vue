@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { Table } from '@/composables/useTables'
-import { ChevronRight } from '@lucide/vue'
+import { Check, ChevronRight, X } from '@lucide/vue'
 import draggable from 'vuedraggable'
-import Person from './Person.vue'
+import PersonComponent from './Person.vue'
 import Button from './ui/button/Button.vue'
 import { Trash } from 'lucide-vue-next'
 import { Input } from '@/components/ui/input'
@@ -16,7 +16,18 @@ const props = defineProps<{
   table: Table
 }>()
 
-defineEmits(['delete', 'update'])
+const name = ref(props.table.name)
+
+const emit = defineEmits(['delete', 'update'])
+
+function handleSubmit() {
+  emit('update', {
+    ...props.table,
+    name: name,
+  })
+
+  isEditingName.value = false
+}
 
 const isEditingName = ref(false)
 </script>
@@ -30,15 +41,22 @@ const isEditingName = ref(false)
           class="size-4 transition-transform duration-200 cursor-pointer"
           :class="{ 'rotate-90': isOpen }"
         />
-
-        <Input
-          v-if="isEditingName"
-          type="email"
-          placeholder="Email"
-          :default-value="table.name"
-          class="h-4!"
-        />
-        <span v-if="!isEditingName" @click.stop.prevent="isEditingName = true">
+        <div v-if="isEditingName" class="flex gap-1 items-center">
+          <Input
+            @keydown.enter="handleSubmit"
+            type="name"
+            placeholder="Name"
+            v-model="name"
+            class="h-8! text-base!"
+          />
+          <Check class="size-5 cursor-pointer text-green-400" @click="handleSubmit" />
+          <X class="size-5 cursor-pointer text-red-400" @click="isEditingName = false" />
+        </div>
+        <span
+          v-if="!isEditingName"
+          @click.stop.prevent="isEditingName = true"
+          class="cursor-pointer hover:bg-neutral-100 py-1 px-2 rounded-md"
+        >
           {{ table.name }}
         </span>
       </div>
@@ -62,7 +80,7 @@ const isEditingName = ref(false)
       >
         <template #item="{ element, index }">
           <div class="item">
-            <Person :person="element" :key="element.name" />
+            <PersonComponent :person="element" :key="element.name" />
           </div>
         </template>
       </draggable>

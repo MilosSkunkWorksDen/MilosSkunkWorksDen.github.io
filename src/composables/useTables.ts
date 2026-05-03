@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, ref, type Ref } from 'vue'
 import type { Person } from './usePeople'
 import { v4 as uuid } from 'uuid'
 
@@ -10,30 +10,37 @@ export interface Table {
 
 const STORAGE_KEY = 'tables'
 
-export default function useTables(count: number) {
-  const tables = ref<Table[]>(get([]))
+export default function useTables(people: Ref<Person[]>) {
+  const tables = ref<Table[]>(load())
 
   const getUniqueId = () => {
     return uuid()
   }
 
-  // 👇 initialize if empty
-  if (!tables.value.length && count > 0) {
-    tables.value = createTables(count)
-    save()
-  }
-
-  function get<T>(fallback: T): T {
+  function load() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      return raw ? JSON.parse(raw) : fallback
+      if (!raw) return []
+
+      const parsed = JSON.parse(raw)
+      return parsed.map((table: any) => ({
+        ...table,
+        people: table.people
+          .map((id: Person['id']) => people.value?.find((p) => p.id === id))
+          .filter((p: Person | undefined) => !!p?.id),
+      }))
     } catch (e) {
-      return fallback
+      return []
     }
   }
 
   function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tables.value))
+    const payload = tables.value.map((table) => ({
+      ...table,
+      people: table.people.map((p) => p.id),
+    }))
+
+    localStorage.setItem('tables', JSON.stringify(payload))
   }
 
   function createTables(count: number): Table[] {
