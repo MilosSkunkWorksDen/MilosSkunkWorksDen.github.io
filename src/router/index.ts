@@ -15,6 +15,11 @@ const router = createRouter({
       name: 'people',
       component: () => import('../views/PeopleView.vue'),
     },
+    {
+      path: '/canvas',
+      name: 'canvas',
+      component: () => import('../views/AssignerCanvasView.vue'),
+    },
     // {
     //   path: '/',
     //   name: 'home',
