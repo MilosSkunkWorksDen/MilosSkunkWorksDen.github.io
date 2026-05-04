@@ -1,26 +1,46 @@
 <script setup lang="ts">
-import { readonly, ref } from 'vue'
+import { ref } from 'vue'
 import { Spreadsheet, Worksheet } from '@jspreadsheet-ce/vue'
 import 'jsuites/dist/jsuites.css'
 import 'jspreadsheet-ce/dist/jspreadsheet.css'
 import Button from './ui/button/Button.vue'
 import type { Person } from '@/composables/usePeople'
+import type jspreadsheet from 'jspreadsheet-ce'
+import useTables from '@/composables/useTables'
 
-type SpreadsheetType = typeof Spreadsheet
+type WorksheetInstance = jspreadsheet.WorksheetInstance
 
 const model = defineModel<Person[]>()
+const { find: findTable } = useTables()
 
 const columns = [
-  { key: 'group', align: 'left', title: 'Group', type: 'text', width: 200 },
-  { key: 'name', align: 'left', title: 'Name', type: 'text', width: 300 },
-  { key: 'attending', align: 'center', title: 'Attending', type: 'checkbox', width: 90 },
-  { key: 'comment', align: 'left', title: 'Comment', type: 'text', width: 600 },
-  { key: 'table_name', align: 'left', title: 'Table', type: 'text', width: 200 },
+  { name: 'group', align: 'left', title: 'Group', type: 'text', width: 200 },
+  { name: 'name', align: 'left', title: 'Name', type: 'text', width: 300 },
+  { name: 'attending', align: 'center', title: 'Attending', type: 'checkbox', width: 90 },
+  { name: 'comment', align: 'left', title: 'Comment', type: 'text', width: 600 },
+  {
+    align: 'left',
+    name: 'table_id',
+    title: 'Table',
+    type: 'text',
+    width: 200,
+    readOnly: true,
+    render(cell: any, value: string) {
+      const table = !!value ? findTable(value) : undefined
+      if (table) {
+        cell.innerHTML = table.name
+      }
+
+      cell.style.setProperty('color', 'rgba(0, 0, 0, 0.6)', 'important')
+
+      return cell
+    },
+  },
 ]
 
 function encode(people: Person[]) {
   return people.map((person) =>
-    columns.map((col) => (col?.key ? person[col.key as keyof Person] : null)),
+    columns.map((col) => (col?.name ? person[col.name as keyof Person] : null)),
   )
 }
 
@@ -29,8 +49,8 @@ function decode(data: Array<Array<any>>): Person[] {
     .map((p, index) => {
       return columns.reduce(
         (acc: any, c, i) => {
-          if (c?.key) {
-            acc[c.key] = p[i]
+          if (c?.name) {
+            acc[c.name] = p[i]
           }
           return acc
         },
@@ -40,7 +60,7 @@ function decode(data: Array<Array<any>>): Person[] {
     .filter((p) => !!p.name)
 }
 
-const updates = (instance: SpreadsheetType, cell: any, x: number, y: number, value: any) => {
+const updates = (instance: WorksheetInstance, cell: any, x: number, y: number, value: any) => {
   const data = instance.getData()
   model.value = decode(data)
 }

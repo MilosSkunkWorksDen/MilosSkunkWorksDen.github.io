@@ -53,5 +53,9 @@ export default function useTables() {
     })
   }
 
-  return { tables, save, remove, addNew, update }
+  function find(id: Table['id']) {
+    return tables.value.find((t) => t.id == id)
+  }
+
+  return { tables, save, remove, addNew, update, find }
 }

@@ -3,13 +3,18 @@ import PeopleSpreadsheet from '@/components/PeopleSpreadsheet.vue'
 import Button from '@/components/ui/button/Button.vue'
 import useDbStorage from '@/composables/useDbStorage'
 import usePeople, { type Person } from '@/composables/usePeople'
+import useTables from '@/composables/useTables'
 import { watch } from 'vue'
 
 const { records, save } = useDbStorage('people')
 
-watch(records, () => {
-  save()
-})
+watch(
+  records,
+  () => {
+    save()
+  },
+  { deep: true },
+)
 </script>
 
 <template>
