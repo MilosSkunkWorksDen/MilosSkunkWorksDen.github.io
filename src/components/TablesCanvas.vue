@@ -1,8 +1,20 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import Button from './ui/button/Button.vue'
 import { Circle } from 'lucide-vue-next'
 import { Square } from '@lucide/vue'
+
+import CanvasMenu from './canvas/CanvasMenu.vue'
+import CanvasActionBar from './canvas/CanvasActionBar.vue'
+
+export type CanvasTable = {
+  id: string | number
+  type: 'circle' | 'rect'
+  x: number
+  y: number
+  width: number
+  height: number
+  label: string
+}
 
 const stage = ref()
 const container = ref()
@@ -106,7 +118,17 @@ function addRectTable() {
 const selectedId = ref()
 const hoverId = ref()
 
-const tables = ref<any>([])
+const tables = ref<CanvasTable[]>([
+  {
+    id: 1,
+    type: 'circle',
+    x: 200,
+    y: 200,
+    width: 200,
+    height: 100,
+    label: `Table 1`,
+  },
+])
 
 const baseTableStyle = {
   fill: '#ffffff',
@@ -116,6 +138,34 @@ const baseTableStyle = {
   shadowBlur: 10,
   shadowOffsetY: 4,
   cornerRadius: 10,
+}
+
+function deleteSelectedTable(table: CanvasTable) {
+  tables.value = tables.value.filter((t) => t.id !== table.id)
+  selectedId.value = null
+}
+
+const contextMenu = ref<{
+  visible: boolean
+  x?: number
+  y?: number
+  table?: CanvasTable
+}>({
+  visible: false,
+})
+
+function onRightClick(e, table: CanvasTable) {
+  e.evt.preventDefault()
+
+  const stage = e.target.getStage()
+  const pos = stage.getPointerPosition()
+
+  contextMenu.value = {
+    visible: true,
+    x: pos.x,
+    y: pos.y,
+    table,
+  }
 }
 </script>
 
@@ -132,10 +182,13 @@ const baseTableStyle = {
         <v-group
           v-for="table in tables.filter((t) => t.type === 'circle')"
           :key="table.id"
-          @click="selectedId = table.id"
-          @mouseenter="hoverId = table.id"
-          @mouseleave="hoverId = null"
-          :draggable="true"
+          :config="{
+            draggable: true,
+            onClick: () => (selectedId = table.id),
+            onMouseEnter: () => (hoverId = table.id),
+            onMouseLeave: () => (hoverId = null),
+            onContextMenu: (e) => onRightClick(e, table),
+          }"
         >
           <v-circle
             :config="{
@@ -166,10 +219,13 @@ const baseTableStyle = {
         <v-group
           v-for="table in tables.filter((t) => t.type === 'rect')"
           :key="table.id"
-          @click="selectedId = table.id"
-          @mouseenter="hoverId = table.id"
-          @mouseleave="hoverId = null"
-          :draggable="true"
+          :config="{
+            draggable: true,
+            onClick: () => (selectedId = table.id),
+            onMouseEnter: () => (hoverId = table.id),
+            onMouseLeave: () => (hoverId = null),
+            onContextMenu: (e) => onRightClick(e, table),
+          }"
         >
           <!-- Table body -->
           <v-rect
@@ -207,16 +263,15 @@ const baseTableStyle = {
       </v-layer>
     </v-stage>
 
-    <div
-      class="cursor-default absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10 bg-sidebar shadow border px-4 py-2 rounded-xl"
-    >
-      <div @click="addCircleTable" class="hover:bg-primary/5 text-primary p-1 rounded-md">
-        <Circle strokeWidth="{1}" class="size-6" />
-      </div>
-      <div @click="addRectTable" class="hover:bg-primary/5 text-primary p-1 rounded-md">
-        <Square strokeWidth="{1}" class="size-6" />
-      </div>
-    </div>
+    <CanvasMenu
+      v-model:open="contextMenu.visible"
+      :x="contextMenu.x"
+      :y="contextMenu.y"
+      :table="contextMenu.table"
+      @delete="deleteSelectedTable"
+    />
+
+    <CanvasActionBar @createCircleTable="addCircleTable" @createRectTable="addRectTable" />
   </div>
 </template>
 
