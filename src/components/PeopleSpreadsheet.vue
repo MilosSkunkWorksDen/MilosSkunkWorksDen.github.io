@@ -16,6 +16,7 @@ const { find: findTable } = useTables()
 const columns = [
   { name: 'group', align: 'left', title: 'Group', type: 'text', width: 200 },
   { name: 'name', align: 'left', title: 'Name', type: 'text', width: 300 },
+  { name: 'invited', align: 'center', title: 'Invitation Sent', type: 'checkbox', width: 120 },
   { name: 'attending', align: 'center', title: 'Attending', type: 'checkbox', width: 90 },
   { name: 'comment', align: 'left', title: 'Comment', type: 'text', width: 600 },
   {
