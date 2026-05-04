@@ -46,8 +46,8 @@ function handlePeopleChange(evt: { added?: any; removed?: any }) {
 </script>
 
 <template>
-  <div class="px-4 py-2 my-2 rounded-lg shadow-sm border border-neutral-50 relative">
-    <div class="flex items-center justify-between">
+  <div class="p-1 my-2 rounded-lg shadow-sm border border-neutral-50 relative">
+    <div class="px-2 flex items-center justify-between">
       <div class="flex gap-2 items-center">
         <ChevronRight
           @click="isOpen = !isOpen"
@@ -69,7 +69,7 @@ function handlePeopleChange(evt: { added?: any; removed?: any }) {
         <span
           v-if="!isEditingName"
           @click.stop.prevent="isEditingName = true"
-          class="cursor-pointer hover:bg-neutral-100 py-1 px-2 rounded-md"
+          class="cursor-pointer hover:bg-neutral-100 py-1 px-1 rounded-md"
         >
           {{ table.name }}
         </span>
@@ -82,7 +82,7 @@ function handlePeopleChange(evt: { added?: any; removed?: any }) {
       </div>
     </div>
 
-    <div v-if="isOpen" class="mt-2 border border-neutral-200 border-dashed rounded-lg relative">
+    <div v-if="isOpen" class="rounded-md relative">
       <draggable
         v-model="table.people"
         group="assign-people-to-tables"
@@ -90,11 +90,11 @@ function handlePeopleChange(evt: { added?: any; removed?: any }) {
         drag-class="draggable-person-drag"
         ghost-class="draggable-person-ghost"
         chosen-class="draggable-person-chosen"
-        class="min-h-12 p-2"
+        class="min-h-12 p-2 grid grid-cols-3 gap-1"
         @change="handlePeopleChange"
       >
         <template #item="{ element, index }">
-          <div class="item my-1">
+          <div class="item">
             <PersonComponent :person="element" :key="element.name" />
           </div>
         </template>
@@ -109,10 +109,12 @@ function handlePeopleChange(evt: { added?: any; removed?: any }) {
       </div>
     </div>
     <div
-      class="flex items-center justify-center gap-1 text-xs"
-      :class="[isOpen ? 'mt-2' : 'absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2']"
+      class="flex items-center justify-start gap-1 text-xs"
+      :class="[
+        isOpen ? 'my-2 mx-4' : 'absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2',
+      ]"
     >
-      <span> Count:</span> {{ table.people.length ?? 0 }}
+      Count: {{ table.people.length ?? 0 }}
     </div>
   </div>
 </template>

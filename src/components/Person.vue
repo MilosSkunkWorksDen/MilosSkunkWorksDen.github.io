@@ -15,7 +15,7 @@ const avatarUrl = (id: number) => ``
 </script>
 
 <template>
-  <div class="flex-1 flex gap-1 cursor-pointer hover:bg-neutral-50 px-2 py-1 rounded-md border">
+  <div class="flex-1 flex gap-1 cursor-pointer hover:bg-neutral-50 px-2 py-1 rounded-md">
     <Avatar class="size-9">
       <AvatarImage :src="avatarUrl(person.id)" />
       <AvatarFallback
