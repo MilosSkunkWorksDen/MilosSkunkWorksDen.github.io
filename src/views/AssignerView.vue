@@ -87,7 +87,7 @@ function updateUsers(table: Table) {}
 <template>
   <div class="flex-1 flex max-h-[calc(100svh-10px)] overflow-hidden">
     <div class="border-r border-neutral-100 flex flex-col gap-4 min-w-80 overflow-hidden">
-      <div class="text-lg px-4 pt-4">Assign People To Tables</div>
+      <div class="text-lg px-4 pt-4">Seating Assignments</div>
 
       <div class="flex-1 flex flex-col overflow-hidden px-4 pb-1">
         <div class="px-2 flex-none text-xs text-black/60 mb-1">People</div>
