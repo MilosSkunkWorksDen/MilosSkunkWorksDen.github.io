@@ -82,7 +82,9 @@ function handleUpdateTable(table: Table) {
   }
 }
 
-function updateUsers(table: Table) {}
+function onDragStart(person, e) {
+  e.dataTransfer.setData('person', person.id)
+}
 </script>
 
 <template>
@@ -93,26 +95,19 @@ function updateUsers(table: Table) {}
       <div class="flex-1 flex flex-col overflow-hidden px-4 pb-1">
         <div class="px-2 flex-none text-xs text-black/60 mb-1">People</div>
 
-        <draggable
-          v-model="pendingPeople"
-          item-key="name"
-          class="overflow-y-auto scrollbar-thin flex-1"
-          drag-class="draggable-person-drag"
-          ghost-class="draggable-person-ghost"
-          chosen-class="draggable-person-chosen"
-          group="assign-people-to-tables"
+        <div
+          v-for="person in pendingPeople"
+          :key="person.id"
+          draggable="true"
+          @dragstart="(e) => onDragStart(person, e)"
         >
-          <template #item="{ element, index }">
-            <div class="item my-1">
-              <PersonComponent :person="element" :key="element.name" />
-            </div>
-          </template>
-        </draggable>
+          <PersonComponent :person="person" />
+        </div>
       </div>
     </div>
 
     <div ref="tablesListRef" class="flex-1 overflow-auto scrollbar-thin">
-      <TablesCanvas />
+      <TablesCanvas :people="pendingPeople" />
     </div>
 
     <!-- <div class="fixed bottom-5 right-5">

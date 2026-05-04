@@ -40,7 +40,7 @@ const emit = defineEmits<{
         <span></span>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="start">
-        <DropdownMenuLabel>{{ table?.label }} </DropdownMenuLabel>
+        <DropdownMenuLabel>{{ table?.name }} </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem @click="$emit('edit', table as CanvasTable)">
           <SquarePen />
