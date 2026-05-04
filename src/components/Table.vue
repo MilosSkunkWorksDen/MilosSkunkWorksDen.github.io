@@ -6,7 +6,7 @@ import PersonComponent from './Person.vue'
 import Button from './ui/button/Button.vue'
 import { Trash } from 'lucide-vue-next'
 import { Input } from '@/components/ui/input'
-import { ref } from 'vue'
+import { nextTick, ref, watch } from 'vue'
 
 const isOpen = defineModel('open', {
   default: true,
@@ -30,6 +30,19 @@ function handleSubmit() {
 }
 
 const isEditingName = ref(false)
+
+const nameInput = ref<HTMLInputElement | null>(null)
+
+watch(isEditingName, async (val) => {
+  if (val) {
+    await nextTick()
+    nameInput.value?.focus()
+  }
+})
+
+function handlePeopleChange(evt: { added?: any; removed?: any }) {
+  emit('update', props.table)
+}
 </script>
 
 <template>
@@ -43,6 +56,7 @@ const isEditingName = ref(false)
         />
         <div v-if="isEditingName" class="flex gap-1 items-center">
           <Input
+            ref="nameInput"
             @keydown.enter="handleSubmit"
             type="name"
             placeholder="Name"
@@ -77,6 +91,7 @@ const isEditingName = ref(false)
         ghost-class="draggable-person-ghost"
         chosen-class="draggable-person-chosen"
         class="min-h-12 p-2"
+        @change="handlePeopleChange"
       >
         <template #item="{ element, index }">
           <div class="item">

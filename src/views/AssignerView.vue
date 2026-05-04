@@ -2,28 +2,34 @@
 import PersonComponent from '@/components/Person.vue'
 import TableComponent from '@/components/Table.vue'
 import Button from '@/components/ui/button/Button.vue'
-import usePeople from '@/composables/usePeople'
+import usePeople, { type Person } from '@/composables/usePeople'
 import useTables, { type Table } from '@/composables/useTables'
 import { Plus } from '@lucide/vue'
-import { nextTick, ref, watch } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 import draggable from 'vuedraggable'
 
-const { people, save: savePeople, moveBackToPending } = usePeople()
+const { people, update: updateUser, save: saveUsers } = usePeople()
 const {
   tables,
   save: saveTables,
   remove: removeTable,
   addNew: addNewTable,
   update: updateTable,
-} = useTables(people)
+} = useTables()
+
+const pendingPeople = ref<Person[]>([])
+
+onMounted(() => {
+  tables.value = tables.value.map((table: any) => ({
+    ...table,
+    people: people.value.filter((p) => p?.table_id === table.id),
+  }))
+
+  const assignedIds = new Set(tables.value.flatMap((t) => t.people.map((p) => p.id)))
+  pendingPeople.value = people.value.filter((person) => !assignedIds.has(person.id))
+})
 
 const tablesListRef = ref<HTMLDivElement>()
-
-// HANDLE SAVE & MOUNT
-function handleSave() {
-  saveTables()
-  savePeople()
-}
 
 async function handleAddTable() {
   addNewTable()
@@ -48,19 +54,34 @@ function handleRemoveTable(table: Table) {
     saveTables()
   } else if (confirm(`Table ${table.name} has people sitting. Are you sure ?`)) {
     removeTable(table.id)
-    moveBackToPending(table.people)
     saveTables()
+
+    pendingPeople.value = [...pendingPeople.value, ...table.people]
+    table.people.forEach((p) => {
+      updateUser({ ...p, table_id: undefined })
+    })
+    saveUsers()
   }
 }
 
 function handleUpdateTable(table: Table) {
   updateTable(table)
   saveTables()
+
+  let updated = false
+  table.people.forEach((p) => {
+    if (p.table_id !== table.id) {
+      updateUser({ ...p, table_id: table.id })
+      updated = true
+    }
+  })
+
+  if (updated) {
+    saveUsers()
+  }
 }
 
-// watch(tables, (val) => {
-//   console.log({ ...val })
-// })
+function updateUsers(table: Table) {}
 </script>
 
 <template>
@@ -72,7 +93,7 @@ function handleUpdateTable(table: Table) {
         <div class="px-2 flex-none text-xs text-black/60 mb-1">People</div>
 
         <draggable
-          v-model="people"
+          v-model="pendingPeople"
           item-key="name"
           class="overflow-y-auto scrollbar-thin flex-1"
           drag-class="draggable-person-drag"
@@ -115,8 +136,8 @@ function handleUpdateTable(table: Table) {
       </div>
     </div>
 
-    <div class="fixed bottom-5 right-5">
+    <!-- <div class="fixed bottom-5 right-5">
       <Button size="lg" @click="handleSave"> Save </Button>
-    </div>
+    </div> -->
   </div>
 </template>

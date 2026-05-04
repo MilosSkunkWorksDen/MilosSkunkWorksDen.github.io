@@ -1,202 +1,26 @@
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
+import useDbStorage from './useDbStorage'
+import Person from '@/components/Person.vue'
 import type { Table } from './useTables'
 
 export interface Person {
   id: number
+  table_id?: Table['id']
+  group?: string
   name: string
+  attending: boolean
 }
-
-const STORAGE_KEY = 'people'
 
 export default function usePeople() {
-  const people = ref<Person[]>(load())
+  const { records, save } = useDbStorage('people')
 
-  function load() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return []
+  const people = computed(() => {
+    return records.value.filter((p) => !!p.name && p.attending === true) as Person[]
+  })
 
-      const parsed = JSON.parse(raw)
-      return parsed
-    } catch (e) {
-      return []
-    }
+  function update(person: Person) {
+    records.value = [...records.value.map((r) => (r.id == person.id ? person : r))]
   }
 
-  function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(people.value))
-  }
-
-  function moveBackToPending(newPeople: Person[]) {
-    people.value.push(...newPeople)
-  }
-
-  return { people, save, moveBackToPending }
+  return { people, update, save }
 }
-
-const FAKER = [
-  { name: 'John Smith' },
-  { name: 'Emma Johnson' },
-  { name: 'Liam Brown' },
-  { name: 'Olivia Williams' },
-  { name: 'Noah Jones' },
-  { name: 'Ava Garcia' },
-  { name: 'Lucas Miller' },
-  { name: 'Mia Davis' },
-  { name: 'Ethan Rodriguez' },
-  { name: 'Sophia Martinez' },
-  { name: 'Mason Hernandez' },
-  { name: 'Isabella Lopez' },
-  { name: 'Logan Gonzalez' },
-  { name: 'Amelia Wilson' },
-  { name: 'James Anderson' },
-  { name: 'Harper Thomas' },
-  { name: 'Benjamin Taylor' },
-  { name: 'Evelyn Moore' },
-  { name: 'Elijah Jackson' },
-  { name: 'Abigail Martin' },
-  { name: 'John Smith' },
-  { name: 'Emma Johnson' },
-  { name: 'Liam Brown' },
-  { name: 'Olivia Williams' },
-  { name: 'Noah Jones' },
-  { name: 'Ava Garcia' },
-  { name: 'Lucas Miller' },
-  { name: 'Mia Davis' },
-  { name: 'Ethan Rodriguez' },
-  { name: 'Sophia Martinez' },
-  { name: 'Mason Hernandez' },
-  { name: 'Isabella Lopez' },
-  { name: 'Logan Gonzalez' },
-  { name: 'Amelia Wilson' },
-  { name: 'James Anderson' },
-  { name: 'Harper Thomas' },
-  { name: 'Benjamin Taylor' },
-  { name: 'Evelyn Moore' },
-  { name: 'Elijah Jackson' },
-  { name: 'Abigail Martin' },
-
-  { name: 'John Smith' },
-  { name: 'Emma Johnson' },
-  { name: 'Liam Brown' },
-  { name: 'Olivia Williams' },
-  { name: 'Noah Jones' },
-  { name: 'Ava Garcia' },
-  { name: 'Lucas Miller' },
-  { name: 'Mia Davis' },
-  { name: 'Ethan Rodriguez' },
-  { name: 'Sophia Martinez' },
-  { name: 'Mason Hernandez' },
-  { name: 'Isabella Lopez' },
-  { name: 'Logan Gonzalez' },
-  { name: 'Amelia Wilson' },
-  { name: 'James Anderson' },
-  { name: 'Harper Thomas' },
-  { name: 'Benjamin Taylor' },
-  { name: 'Evelyn Moore' },
-  { name: 'Elijah Jackson' },
-  { name: 'Abigail Martin' },
-  { name: 'John Smith' },
-  { name: 'Emma Johnson' },
-  { name: 'Liam Brown' },
-  { name: 'Olivia Williams' },
-  { name: 'Noah Jones' },
-  { name: 'Ava Garcia' },
-  { name: 'Lucas Miller' },
-  { name: 'Mia Davis' },
-  { name: 'Ethan Rodriguez' },
-  { name: 'Sophia Martinez' },
-  { name: 'Mason Hernandez' },
-  { name: 'Isabella Lopez' },
-  { name: 'Logan Gonzalez' },
-  { name: 'Amelia Wilson' },
-  { name: 'James Anderson' },
-  { name: 'Harper Thomas' },
-  { name: 'Benjamin Taylor' },
-  { name: 'Evelyn Moore' },
-  { name: 'Elijah Jackson' },
-  { name: 'Abigail Martin' },
-  { name: 'John Smith' },
-  { name: 'Emma Johnson' },
-  { name: 'Liam Brown' },
-  { name: 'Olivia Williams' },
-  { name: 'Noah Jones' },
-  { name: 'Ava Garcia' },
-  { name: 'Lucas Miller' },
-  { name: 'Mia Davis' },
-  { name: 'Ethan Rodriguez' },
-  { name: 'Sophia Martinez' },
-  { name: 'Mason Hernandez' },
-  { name: 'Isabella Lopez' },
-  { name: 'Logan Gonzalez' },
-  { name: 'Amelia Wilson' },
-  { name: 'James Anderson' },
-  { name: 'Harper Thomas' },
-  { name: 'Benjamin Taylor' },
-  { name: 'Evelyn Moore' },
-  { name: 'Elijah Jackson' },
-  { name: 'Abigail Martin' },
-  { name: 'John Smith' },
-  { name: 'Emma Johnson' },
-  { name: 'Liam Brown' },
-  { name: 'Olivia Williams' },
-  { name: 'Noah Jones' },
-  { name: 'Ava Garcia' },
-  { name: 'Lucas Miller' },
-  { name: 'Mia Davis' },
-  { name: 'Ethan Rodriguez' },
-  { name: 'Sophia Martinez' },
-  { name: 'Mason Hernandez' },
-  { name: 'Isabella Lopez' },
-  { name: 'Logan Gonzalez' },
-  { name: 'Amelia Wilson' },
-  { name: 'James Anderson' },
-  { name: 'Harper Thomas' },
-  { name: 'Benjamin Taylor' },
-  { name: 'Evelyn Moore' },
-  { name: 'Elijah Jackson' },
-  { name: 'Abigail Martin' },
-  { name: 'John Smith' },
-  { name: 'Emma Johnson' },
-  { name: 'Liam Brown' },
-  { name: 'Olivia Williams' },
-  { name: 'Noah Jones' },
-  { name: 'Ava Garcia' },
-  { name: 'Lucas Miller' },
-  { name: 'Mia Davis' },
-  { name: 'Ethan Rodriguez' },
-  { name: 'Sophia Martinez' },
-  { name: 'Mason Hernandez' },
-  { name: 'Isabella Lopez' },
-  { name: 'Logan Gonzalez' },
-  { name: 'Amelia Wilson' },
-  { name: 'James Anderson' },
-  { name: 'Harper Thomas' },
-  { name: 'Benjamin Taylor' },
-  { name: 'Evelyn Moore' },
-  { name: 'Elijah Jackson' },
-  { name: 'Abigail Martin' },
-  { name: 'John Smith' },
-  { name: 'Emma Johnson' },
-  { name: 'Liam Brown' },
-  { name: 'Olivia Williams' },
-  { name: 'Noah Jones' },
-  { name: 'Ava Garcia' },
-  { name: 'Lucas Miller' },
-  { name: 'Mia Davis' },
-  { name: 'Ethan Rodriguez' },
-  { name: 'Sophia Martinez' },
-  { name: 'Mason Hernandez' },
-  { name: 'Isabella Lopez' },
-  { name: 'Logan Gonzalez' },
-  { name: 'Amelia Wilson' },
-  { name: 'James Anderson' },
-  { name: 'Harper Thomas' },
-  { name: 'Benjamin Taylor' },
-  { name: 'Evelyn Moore' },
-  { name: 'Elijah Jackson' },
-  { name: 'Abigail Martin' },
-].map((p, i) => ({
-  ...p,
-  id: i + 1,
-}))

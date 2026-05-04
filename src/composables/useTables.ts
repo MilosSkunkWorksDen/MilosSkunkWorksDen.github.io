@@ -10,7 +10,7 @@ export interface Table {
 
 const STORAGE_KEY = 'tables'
 
-export default function useTables(people: Ref<Person[]>) {
+export default function useTables() {
   const tables = ref<Table[]>(load())
 
   const getUniqueId = () => {
@@ -22,13 +22,7 @@ export default function useTables(people: Ref<Person[]>) {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (!raw) return []
 
-      const parsed = JSON.parse(raw)
-      return parsed.map((table: any) => ({
-        ...table,
-        people: table.people
-          .map((id: Person['id']) => people.value?.find((p) => p.id === id))
-          .filter((p: Person | undefined) => !!p?.id),
-      }))
+      return JSON.parse(raw)
     } catch (e) {
       return []
     }
@@ -37,18 +31,10 @@ export default function useTables(people: Ref<Person[]>) {
   function save() {
     const payload = tables.value.map((table) => ({
       ...table,
-      people: table.people.map((p) => p.id),
+      people: [],
     }))
 
     localStorage.setItem('tables', JSON.stringify(payload))
-  }
-
-  function createTables(count: number): Table[] {
-    return Array.from({ length: count }, (_, i) => ({
-      id: getUniqueId(),
-      name: `Table ${i + 1}`,
-      people: [],
-    }))
   }
 
   function remove(id: Table['id']) {

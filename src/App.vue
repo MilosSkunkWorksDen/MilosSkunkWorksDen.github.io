@@ -10,7 +10,7 @@ import SidebarNavigation from './components/SidebarNavigation.vue'
 <template>
   <div class="flex bg-background">
     <div id="sidebar" class="flex flex-col min-w-42 p-2 gap-4">
-      <Link to="/assigner" class="px-4 py-2">
+      <Link to="/" class="px-4 py-2">
         <div class="flex gap-4">
           <Table class="bg-black rounded-md text-white p-1 size-7" />
           <span> Table Assigner </span>
