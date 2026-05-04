@@ -94,7 +94,7 @@ function handlePeopleChange(evt: { added?: any; removed?: any }) {
         @change="handlePeopleChange"
       >
         <template #item="{ element, index }">
-          <div class="item">
+          <div class="item my-1">
             <PersonComponent :person="element" :key="element.name" />
           </div>
         </template>

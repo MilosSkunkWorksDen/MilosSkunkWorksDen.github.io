@@ -102,7 +102,7 @@ function updateUsers(table: Table) {}
           group="assign-people-to-tables"
         >
           <template #item="{ element, index }">
-            <div class="item">
+            <div class="item my-1">
               <PersonComponent :person="element" :key="element.name" />
             </div>
           </template>
