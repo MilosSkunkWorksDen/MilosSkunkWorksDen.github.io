@@ -5,7 +5,7 @@ import router from './router'
 import { Camera, Home, Info, InfoIcon, Table, Users } from '@lucide/vue'
 import Link from './components/Link.vue'
 import SidebarNavigation from './components/SidebarNavigation.vue'
-import { LayoutGrid, NotepadText, PenTool } from 'lucide-vue-next'
+import { LayoutGrid, NotebookText, NotepadText, PenTool } from 'lucide-vue-next'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Button } from './components/ui/button'
 import NewProject from './components/new-project/NewProject.vue'
@@ -16,7 +16,7 @@ import NewProject from './components/new-project/NewProject.vue'
     <div id="sidebar" class="flex flex-col p-2 gap-4">
       <Link to="/" class="px-2 py-2">
         <div class="flex gap-4 items-center justify-center">
-          <NotepadText class="bg-black rounded-md text-white p-1 size-7" />
+          <NotebookText class="bg-primary rounded-md text-white p-1 size-7" />
           <!-- <span> Table Assigner </span> -->
         </div>
       </Link>
