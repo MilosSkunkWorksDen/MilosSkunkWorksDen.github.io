@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue'
 import CanvasMenu from './canvas/CanvasMenu.vue'
 import CanvasActionBar from './canvas/CanvasActionBar.vue'
 import type { Person } from '@/composables/usePeople'
 import type { CanvasTable, ContextMenu } from './canvas/types'
+import PersonComponent from '@/components/Person.vue'
 
 const props = defineProps<{
   people: Person[]
@@ -15,6 +16,11 @@ const emit = defineEmits<{
   (e: 'addRectTable'): void
   (e: 'deleteTable', table: CanvasTable): void
   (e: 'addPersonToTable', table: CanvasTable, person: Person): void
+  (
+    e: 'updateTableCoordinates',
+    table: CanvasTable,
+    coordinates: { x: CanvasTable['x']; y: CanvasTable['y'] },
+  ): void
 }>()
 
 const stageRef = ref()
@@ -30,7 +36,36 @@ const contextMenu = ref<ContextMenu>({
   visible: false,
 })
 
+const isSpaceDown = ref(false)
+const isPanMode = ref(false)
+
+function setPanMode(enabled: boolean) {
+  isPanMode.value = enabled
+  const stage = stageRef.value?.getNode()
+  if (!stage) return
+
+  stage.draggable(enabled)
+  stage.container().style.cursor = enabled ? 'grab' : 'default'
+}
+
+function onKeyDown(e) {
+  if (e.code === 'Space') {
+    isSpaceDown.value = true
+    setPanMode(true)
+  }
+}
+
+function onKeyUp(e) {
+  if (e.code === 'Space') {
+    isSpaceDown.value = false
+    setPanMode(false)
+  }
+}
+
 onMounted(() => {
+  window.addEventListener('keydown', onKeyDown)
+  window.addEventListener('keyup', onKeyUp)
+
   //  const el = val.getStage().attrs.container
   const el = containerRef.value
   const rect = el.getBoundingClientRect()
@@ -39,6 +74,11 @@ onMounted(() => {
     width: rect.width,
     height: rect.height,
   }
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeyDown)
+  window.removeEventListener('keyup', onKeyUp)
 })
 
 function handleWheel(e: any) {
@@ -131,16 +171,99 @@ function handleHover(table?: CanvasTable) {
   }
 }
 
-function getSeatPosition(table: CanvasTable, index: number) {
-  if (table.type != 'circle') {
-    return
-  }
-  const n = table.people.length
-  const angle = (index / n) * Math.PI * 2 - Math.PI / 2
+function getDirection(angle: number) {
+  const deg = (angle * 180) / Math.PI
+  const normalized = (deg + 360) % 360
+
+  const directions = [
+    'right',
+    'bottom-right',
+    'bottom',
+    'bottom-left',
+    'left',
+    'top-left',
+    'top',
+    'top-right',
+  ]
+
+  return directions[Math.round(normalized / 45) % 8]
+}
+
+function offsetFromCenter(centerX: number, centerY: number, x: number, y: number, offset = 25) {
+  const dx = x - centerX
+  const dy = y - centerY
+
+  const len = Math.sqrt(dx * dx + dy * dy)
 
   return {
-    x: table.x + Math.cos(angle) * (table.width / 2),
-    y: table.y + Math.sin(angle) * (table.width / 2),
+    x: centerX + (dx / len) * (len + offset),
+    y: centerY + (dy / len) * (len + offset),
+  }
+}
+
+function getSeatPosition(table: CanvasTable, index: number) {
+  const n = table.people.length
+
+  const angle = (index / n) * Math.PI * 2 - Math.PI / 2
+  const direction = getDirection(angle)
+
+  const radius = table.width / 2
+
+  const r = radius
+
+  const x = table.x + Math.cos(angle) * r
+  const y = table.y + Math.sin(angle) * r
+
+  const pos = offsetFromCenter(table.x, table.y, x, y, 50)
+
+  return {
+    ...pos,
+    direction,
+  }
+}
+
+const tablesWithCoordinates = computed(() => {
+  return props.tables.map((t) => {
+    return {
+      ...t,
+      people: t.people.map((p, index) => ({
+        ...p,
+        ...getSeatPosition(t, index),
+      })),
+    }
+  })
+})
+
+function onPersonDragStart(e: any, person: Person) {
+  e.dataTransfer.setData('person_id', person.id)
+}
+
+function onTableDragMove(e: any, table: CanvasTable) {
+  console.log('onTableDragMove')
+
+  const node = e.target
+
+  emit('updateTableCoordinates', table, {
+    x: node.x(),
+    y: node.y(),
+  })
+}
+
+function setTextNode(node) {
+  if (!node) return
+
+  const konvaNode = node.getNode() // important in vue-konva
+
+  konvaNode.offsetX(konvaNode.width() / 2)
+  konvaNode.offsetY(konvaNode.height() / 2)
+}
+
+function fitText(node, maxWidth = 120) {
+  let size = node.fontSize()
+
+  while (node.width() > maxWidth && size > 6) {
+    size -= 1
+    node.fontSize(size)
   }
 }
 </script>
@@ -150,22 +273,22 @@ function getSeatPosition(table: CanvasTable, index: number) {
     ref="containerRef"
     @dragover.prevent="onDragOver"
     @drop="onDrop"
-    class="relative w-full h-full cursor-grab active:cursor-grabbing"
+    class="relative w-full h-full"
+    :class="{ 'cursor-grab active:cursor-grabbing': isPanMode }"
   >
     <v-stage
       v-if="containerSize && containerSize?.width > 0"
       ref="stageRef"
       class="h-full w-full"
-      :config="{ ...containerSize, draggable: true }"
+      :config="{ ...containerSize }"
       @wheel="handleWheel"
     >
       <v-layer>
         <v-group
-          v-for="table in tables.filter((t) => t.type === 'circle')"
+          v-for="table in tablesWithCoordinates.filter((t) => t.type === 'circle')"
           :key="table.id"
           :config="{
             table: table,
-            draggable: true,
             onClick: () => (selectedId = table.id),
             onMouseEnter: () => handleHover(table),
             onMouseLeave: () => handleHover(),
@@ -179,39 +302,82 @@ function getSeatPosition(table: CanvasTable, index: number) {
               y: table.y,
               radius: table.width / 2,
               fill: baseTableStyle.fill,
-              stroke: selectedId === table.id ? '#3B82F6' : baseTableStyle.stroke,
+              stroke: baseTableStyle.stroke,
               strokeWidth: 1.5,
-              shadowBlur: hoverId === table.id ? 50 : 8,
+              shadowBlur: hoverId === table.id ? 14 : 8,
               shadowOpacity: 0.1,
+              draggable: true,
             }"
+            @dragmove="onTableDragMove($event, table)"
           />
 
           <v-text
             :config="{
-              table: table,
-              text: table.name,
+              text: `${table.name}\n\n Count: ${table.people.length}`,
               x: table.x - table.width / 2,
               y: table.y - 10,
               width: table.width,
               align: 'center',
-              fontSize: 13,
+              fontSize: 15,
               fill: '#334155',
+              listening: false, // 👈 KEY FIX
             }"
           />
 
-          <v-text
-            v-for="(person, index) in table.people"
+          <v-group
+            v-for="person in table.people"
+            :key="person.id"
             :config="{
-              x: getSeatPosition(table, index)?.x,
-              y: getSeatPosition(table, index)?.y,
-              text: person.name,
-              draggable: true,
+              x: person.x,
+              y: person.y,
+              offsetX: 150 / 2,
+              offsetY: 50 / 2,
             }"
-          />
+          >
+            <!-- background -->
+            <v-rect
+              :config="{
+                width: 150,
+                height: 50,
+                fill: 'white',
+                stroke: '#e2e8f0',
+                cornerRadius: 6,
+                shadowBlur: 10,
+                shadowOpacity: 0.2,
+              }"
+            />
+
+            <!-- centered text -->
+            <v-text
+              :config="{
+                text: person.name,
+                fontSize: 12,
+                fill: '#334155',
+                width: 150,
+                height: 50,
+                align: 'center',
+                verticalAlign: 'middle',
+              }"
+              @text:transformend="(e) => fitText(e.target)"
+            />
+          </v-group>
+
+          <v-text />
+
+          <!-- <v-circle
+            v-for="(person, index) in table.people"
+            :key="person.id"
+            :config="{
+              x: person.x,
+              y: person.y,
+              radius: 2,
+              fill: 'red',
+            }"
+          /> -->
         </v-group>
 
-        <v-group
-          v-for="table in tables.filter((t) => t.type === 'rect')"
+        <!-- <v-group
+          v-for="table in tablesWithCoordinates.filter((t) => t.type === 'rect')"
           :key="table.id"
           :config="{
             table: table,
@@ -222,7 +388,6 @@ function getSeatPosition(table: CanvasTable, index: number) {
             onContextMenu: (e: any) => onRightClick(e, table),
           }"
         >
-          <!-- Table body -->
           <v-rect
             :config="{
               table: table,
@@ -240,7 +405,6 @@ function getSeatPosition(table: CanvasTable, index: number) {
             }"
           />
 
-          <!-- name (centered) -->
           <v-text
             :config="{
               table: table,
@@ -256,7 +420,7 @@ function getSeatPosition(table: CanvasTable, index: number) {
               listening: false,
             }"
           />
-        </v-group>
+        </v-group> -->
       </v-layer>
     </v-stage>
 

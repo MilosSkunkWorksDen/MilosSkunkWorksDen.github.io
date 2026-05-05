@@ -38,7 +38,7 @@ function addCircleTable() {
     type: 'circle',
     x: 200,
     y: 200,
-    width: 200,
+    width: 300,
   })
 
   saveTables()
@@ -49,7 +49,7 @@ function addRectTable() {
     type: 'rect',
     x: 200,
     y: 200,
-    width: 200,
+    width: 300,
     height: 100,
   })
 
@@ -105,11 +105,19 @@ function removePersonFromTable(table: CanvasTable, person: Person) {
   pendingPeople.value = [person, ...pendingPeople.value.filter((p) => p.id != person.id)]
 }
 
+function updateTableCoordinates(
+  table: CanvasTable,
+  coordinates: { x: CanvasTable['x']; y: CanvasTable['y'] },
+) {
+  updateTable({ ...table, ...coordinates })
+  saveTables()
+}
+
 function onDragStart(e: any, person: Person) {
   e.dataTransfer.setData('person_id', person.id)
 }
 
-watch(tables, (v) => console.log({ ...v }), { deep: true })
+// watch(tables, (v) => console.log({ ...v }), { deep: true })
 </script>
 
 <template>
@@ -137,6 +145,7 @@ watch(tables, (v) => console.log({ ...v }), { deep: true })
         @add-rect-table="addRectTable"
         @delete-table="deleteTable"
         @add-person-to-table="addPersonToTable"
+        @update-table-coordinates="updateTableCoordinates"
         :people="pendingPeople"
         :tables="tables"
       />

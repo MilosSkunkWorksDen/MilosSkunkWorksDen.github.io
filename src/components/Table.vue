@@ -41,7 +41,7 @@ watch(isEditingName, async (val) => {
 })
 
 function handlePeopleChange(evt: { added?: any; removed?: any }) {
-  emit('update', props.table)
+  emit('update', props.table, evt)
 }
 </script>
 

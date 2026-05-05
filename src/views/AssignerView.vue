@@ -64,7 +64,7 @@ function handleRemoveTable(table: Table) {
   }
 }
 
-function handleUpdateTable(table: Table) {
+function handleUpdateTable(table: Table, ev: any = null) {
   updateTable(table)
   saveTables()
 
@@ -76,12 +76,17 @@ function handleUpdateTable(table: Table) {
     }
   })
 
+  if (ev.removed) {
+    updated = true
+    updateUser({ ...ev.removed.element, table_id: undefined })
+  }
+
   if (updated) {
     saveUsers()
   }
 }
 
-function updateUsers(table: Table) {}
+function handlePendingPeopleChange(table: Table) {}
 </script>
 
 <template>
@@ -100,6 +105,7 @@ function updateUsers(table: Table) {}
           ghost-class="draggable-person-ghost"
           chosen-class="draggable-person-chosen"
           group="assign-people-to-tables"
+          @change="handlePendingPeopleChange"
         >
           <template #item="{ element, index }">
             <div class="item my-1">

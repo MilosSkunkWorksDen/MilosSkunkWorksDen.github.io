@@ -3,7 +3,8 @@ import type { Person } from './usePeople'
 import { v4 as uuid } from 'uuid'
 import type { BaseCircle, BaseRect, CanvasTable } from '@/components/canvas/types'
 
-const STORAGE_KEY = 'canvas_tables'
+// const STORAGE_KEY = 'canvas_tables'
+const STORAGE_KEY = 'tables'
 
 export default function useCanvasTables() {
   const tables = ref<CanvasTable[]>(load())
