@@ -34,7 +34,7 @@ export default function useTables() {
       people: [],
     }))
 
-    localStorage.setItem('tables', JSON.stringify(payload))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
   }
 
   function remove(id: Table['id']) {

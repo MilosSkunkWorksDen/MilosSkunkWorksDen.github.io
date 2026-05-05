@@ -8,6 +8,7 @@ import SidebarNavigation from './components/SidebarNavigation.vue'
 import { LayoutGrid, NotepadText, PenTool } from 'lucide-vue-next'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Button } from './components/ui/button'
+import NewProject from './components/new-project/NewProject.vue'
 </script>
 
 <template>
@@ -35,5 +36,9 @@ import { Button } from './components/ui/button'
         <RouterView />
       </div>
     </main>
+
+    <div class="fixed bottom-2 left-5">
+      <NewProject />
+    </div>
   </div>
 </template>
