@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Plus } from 'lucide-vue-next'
-import Link, { type Props as LinkProps } from './Link.vue'
 import type { LucideIcon } from '@lucide/vue'
 import { computed, type HTMLAttributes, type HtmlHTMLAttributes } from 'vue'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
