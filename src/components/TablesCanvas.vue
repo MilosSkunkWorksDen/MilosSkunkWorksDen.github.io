@@ -1,38 +1,21 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { Circle } from 'lucide-vue-next'
-import { Square } from '@lucide/vue'
-
 import CanvasMenu from './canvas/CanvasMenu.vue'
 import CanvasActionBar from './canvas/CanvasActionBar.vue'
 import type { Person } from '@/composables/usePeople'
-import { P } from 'vue-router/dist/index-D_VEAp3P.js'
-import type { Table } from '@/composables/useTables'
+import type { CanvasTable, ContextMenu } from './canvas/types'
 
 const props = defineProps<{
   people: Person[]
+  tables: CanvasTable[]
 }>()
 
-export type CanvasTable =
-  | {
-      id: string | number
-      type: 'circle'
-      x: number
-      y: number
-      radius: number
-      name: string
-      people: Person[]
-    }
-  | {
-      id: string | number
-      type: 'rect'
-      x: number
-      y: number
-      width: number
-      height: number
-      name: string
-      people: Person[]
-    }
+const emit = defineEmits<{
+  (e: 'addCircleTable'): void
+  (e: 'addRectTable'): void
+  (e: 'deleteTable', table: CanvasTable): void
+  (e: 'addPersonToTable', table: CanvasTable, person: Person): void
+}>()
 
 const stageRef = ref()
 const containerRef = ref()
@@ -40,6 +23,12 @@ const containerSize = ref<{
   width: number
   height: number
 }>()
+const selectedId = ref<CanvasTable['id']>()
+const hoverId = ref<CanvasTable['id']>()
+
+const contextMenu = ref<ContextMenu>({
+  visible: false,
+})
 
 onMounted(() => {
   //  const el = val.getStage().attrs.container
@@ -81,46 +70,6 @@ function handleWheel(e: any) {
   stage.batchDraw()
 }
 
-function addCircleTable() {
-  tables.value.push({
-    id: String(tables.value.length + 1),
-    type: 'circle',
-    x: 200,
-    y: 200,
-    radius: 100,
-    name: `Table ${tables.value.length + 1}`,
-    people: [],
-  })
-}
-
-function addRectTable() {
-  tables.value.push({
-    id: String(tables.value.length + 1),
-    type: 'rect',
-    x: 200,
-    y: 200,
-    width: 200,
-    height: 100,
-    name: `Table ${tables.value.length + 1}`,
-    people: [],
-  })
-}
-
-const selectedId = ref()
-const hoverId = ref()
-
-const tables = ref<CanvasTable[]>([
-  {
-    id: 1,
-    type: 'circle',
-    x: 200,
-    y: 200,
-    radius: 100,
-    name: `Table 1`,
-    people: [],
-  },
-])
-
 const baseTableStyle = {
   fill: '#ffffff',
   stroke: '#CBD5E1',
@@ -130,20 +79,6 @@ const baseTableStyle = {
   shadowOffsetY: 4,
   cornerRadius: 10,
 }
-
-function deleteSelectedTable(table: CanvasTable) {
-  tables.value = tables.value.filter((t) => t.id !== table.id)
-  selectedId.value = null
-}
-
-const contextMenu = ref<{
-  visible: boolean
-  x?: number
-  y?: number
-  table?: CanvasTable
-}>({
-  visible: false,
-})
 
 function onRightClick(e: any, table: CanvasTable) {
   e.evt.preventDefault()
@@ -159,7 +94,7 @@ function onRightClick(e: any, table: CanvasTable) {
   }
 }
 
-function getHoveredShape(e: any) {
+function getDragOverShape(e: any) {
   const stage = stageRef.value.getStage()
 
   const rect = stage.container().getBoundingClientRect()
@@ -173,18 +108,18 @@ function getHoveredShape(e: any) {
 }
 
 function onDrop(e: any) {
-  const shape = getHoveredShape(e)
-  const person_id = e.dataTransfer.getData('person')
+  const shape = getDragOverShape(e)
+  const person_id = e.dataTransfer.getData('person_id')
   const person = props.people.find((p) => p.id == person_id)
   const table = shape?.attrs.table
 
   if (table && person) {
-    assignPersonToTable(person, table)
+    emit('addPersonToTable', table, person)
   }
 }
 
 function onDragOver(e: any) {
-  const shape = getHoveredShape(e)
+  const shape = getDragOverShape(e)
   handleHover(shape?.attrs.table)
 }
 
@@ -192,25 +127,8 @@ function handleHover(table?: CanvasTable) {
   if (table?.id) {
     hoverId.value = table.id
   } else {
-    hoverId.value = null
+    hoverId.value = undefined
   }
-}
-
-function assignPersonToTable(person: Person, table: Table) {
-  // remove from previous table first
-  tables.value = tables.value.map((t) => {
-    if (t.id == table.id) {
-      return {
-        ...t,
-        people: [...t.people.filter((p) => p.id !== person.id), person],
-      }
-    } else {
-      return {
-        ...t,
-        people: [...t.people.filter((p) => p.id !== person.id)],
-      }
-    }
-  })
 }
 
 function getSeatPosition(table: CanvasTable, index: number) {
@@ -218,26 +136,13 @@ function getSeatPosition(table: CanvasTable, index: number) {
     return
   }
   const n = table.people.length
-
   const angle = (index / n) * Math.PI * 2 - Math.PI / 2
 
   return {
-    x: table.x + Math.cos(angle) * table.radius,
-    y: table.y + Math.sin(angle) * table.radius,
+    x: table.x + Math.cos(angle) * (table.width / 2),
+    y: table.y + Math.sin(angle) * (table.width / 2),
   }
 }
-
-function layoutTable(table: CanvasTable) {
-  table.people.forEach((person, index) => {
-    const pos = getSeatPosition(table, index)
-    person.x = pos.x
-    person.y = pos.y
-  })
-}
-
-watch(tables, (val) => {
-  console.log(val)
-})
 </script>
 
 <template>
@@ -272,7 +177,7 @@ watch(tables, (val) => {
               table: table,
               x: table.x,
               y: table.y,
-              radius: table.radius,
+              radius: table.width / 2,
               fill: baseTableStyle.fill,
               stroke: selectedId === table.id ? '#3B82F6' : baseTableStyle.stroke,
               strokeWidth: 1.5,
@@ -285,9 +190,9 @@ watch(tables, (val) => {
             :config="{
               table: table,
               text: table.name,
-              x: table.x - table.radius,
+              x: table.x - table.width / 2,
               y: table.y - 10,
-              width: table.radius * 2,
+              width: table.width,
               align: 'center',
               fontSize: 13,
               fill: '#334155',
@@ -360,10 +265,13 @@ watch(tables, (val) => {
       :x="contextMenu.x"
       :y="contextMenu.y"
       :table="contextMenu.table"
-      @delete="deleteSelectedTable"
+      @delete="$emit('deleteTable', $event)"
     />
 
-    <CanvasActionBar @createCircleTable="addCircleTable" @createRectTable="addRectTable" />
+    <CanvasActionBar
+      @createCircleTable="$emit('addCircleTable')"
+      @createRectTable="$emit('addRectTable')"
+    />
   </div>
 </template>
 

@@ -8,6 +8,10 @@ import useTables, { type Table } from '@/composables/useTables'
 import { Plus } from '@lucide/vue'
 import { nextTick, onMounted, ref, watch } from 'vue'
 import draggable from 'vuedraggable'
+import useCanvasTables from '@/composables/useCanvasTables'
+import type { CanvasTable } from '@/components/canvas/types'
+
+const tablesListRef = ref<HTMLDivElement>()
 
 const { people, update: updateUser, save: saveUsers } = usePeople()
 const {
@@ -16,10 +20,9 @@ const {
   remove: removeTable,
   addNew: addNewTable,
   update: updateTable,
-} = useTables()
+} = useCanvasTables()
 
 const pendingPeople = ref<Person[]>([])
-
 onMounted(() => {
   tables.value = tables.value.map((table: any) => ({
     ...table,
@@ -30,61 +33,83 @@ onMounted(() => {
   pendingPeople.value = people.value.filter((person) => !assignedIds.has(person.id))
 })
 
-const tablesListRef = ref<HTMLDivElement>()
+function addCircleTable() {
+  addNewTable({
+    type: 'circle',
+    x: 200,
+    y: 200,
+    width: 200,
+  })
 
-async function handleAddTable() {
-  addNewTable()
   saveTables()
 }
 
-function onAfterEnter(el: Element) {
-  requestAnimationFrame(() => {
-    const el = tablesListRef.value
-    if (!el) return
-
-    el.scrollTo({
-      top: el.scrollHeight,
-      behavior: 'smooth',
-    })
+function addRectTable() {
+  addNewTable({
+    type: 'rect',
+    x: 200,
+    y: 200,
+    width: 200,
+    height: 100,
   })
+
+  saveTables()
 }
 
-function handleRemoveTable(table: Table) {
+function deleteTable(table: CanvasTable) {
   if (table.people.length == 0) {
     removeTable(table.id)
     saveTables()
   } else if (confirm(`Table ${table.name} has people sitting. Are you sure ?`)) {
+    removeAllPeopleFromTable(table)
     removeTable(table.id)
     saveTables()
-
-    pendingPeople.value = [...pendingPeople.value, ...table.people]
-    table.people.forEach((p) => {
-      updateUser({ ...p, table_id: undefined })
-    })
-    saveUsers()
   }
 }
 
-function handleUpdateTable(table: Table) {
-  updateTable(table)
+function removeAllPeopleFromTable(table: CanvasTable) {
+  const newUsers = table.people.map((p) => {
+    const newUser = { ...p, table_id: undefined }
+    updateUser(newUser)
+    return newUser
+  })
+  saveUsers()
+
+  pendingPeople.value = [...newUsers, ...pendingPeople.value]
+}
+
+function addPersonToTable(table: CanvasTable, person: Person) {
+  const oldTable = person.table_id ? tables.value.find((t) => t.id == person.table_id) : undefined
+  if (oldTable) {
+    removePersonFromTable(oldTable, person)
+  }
+
+  const newPerson = { ...person, table_id: table.id }
+  updateUser(newPerson)
+  saveUsers()
+
+  // TODO: bad ux keep order and uniqueness of people
+  updateTable({ ...table, people: [...table.people.filter((p) => p.id !== person.id), newPerson] })
   saveTables()
 
-  let updated = false
-  table.people.forEach((p) => {
-    if (p.table_id !== table.id) {
-      updateUser({ ...p, table_id: table.id })
-      updated = true
-    }
-  })
-
-  if (updated) {
-    saveUsers()
-  }
+  pendingPeople.value = pendingPeople.value.filter((p) => p.id != person.id)
 }
 
-function onDragStart(person, e) {
-  e.dataTransfer.setData('person', person.id)
+function removePersonFromTable(table: CanvasTable, person: Person) {
+  updateUser({ ...person, table_id: undefined })
+  saveUsers()
+
+  updateTable({ ...table, people: [...table.people.filter((p) => p.id !== person.id)] })
+  saveTables()
+
+  pendingPeople.value = [person, ...pendingPeople.value.filter((p) => p.id != person.id)]
 }
+
+function onDragStart(e: any, person: Person) {
+  e.dataTransfer.setData('person_id', person.id)
+}
+
+watch(tables, (v) => console.log({ ...v }), { deep: true })
 </script>
 
 <template>
@@ -98,8 +123,8 @@ function onDragStart(person, e) {
         <div
           v-for="person in pendingPeople"
           :key="person.id"
-          draggable="true"
-          @dragstart="(e) => onDragStart(person, e)"
+          :draggable="true"
+          @dragstart="onDragStart($event, person)"
         >
           <PersonComponent :person="person" />
         </div>
@@ -107,7 +132,14 @@ function onDragStart(person, e) {
     </div>
 
     <div ref="tablesListRef" class="flex-1 overflow-auto scrollbar-thin">
-      <TablesCanvas :people="pendingPeople" />
+      <TablesCanvas
+        @add-circle-table="addCircleTable"
+        @add-rect-table="addRectTable"
+        @delete-table="deleteTable"
+        @add-person-to-table="addPersonToTable"
+        :people="pendingPeople"
+        :tables="tables"
+      />
     </div>
 
     <!-- <div class="fixed bottom-5 right-5">

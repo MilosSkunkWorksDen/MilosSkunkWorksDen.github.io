@@ -8,9 +8,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { watch } from 'vue'
-import type { CanvasTable } from '../TablesCanvas.vue'
 import DropdownMenuShortcut from '../ui/dropdown-menu/DropdownMenuShortcut.vue'
 import { Pen, SquarePen, TrashIcon } from 'lucide-vue-next'
+import type { CanvasTable } from './types'
 
 interface Props {
   x?: number
