@@ -38,7 +38,7 @@ function addCircleTable() {
     type: 'circle',
     x: 200,
     y: 200,
-    width: 300,
+    width: 150,
   })
 
   saveTables()
@@ -49,8 +49,8 @@ function addRectTable() {
     type: 'rect',
     x: 200,
     y: 200,
-    width: 300,
-    height: 100,
+    width: 150,
+    height: 150 * 3,
   })
 
   saveTables()
@@ -125,7 +125,7 @@ function onDragStart(e: any, person: Person) {
     <div class="border-r border-neutral-100 flex flex-col gap-4 min-w-80 overflow-hidden">
       <div class="text-lg px-4 pt-4">Seating Assignments</div>
 
-      <div class="flex-1 flex flex-col overflow-hidden px-4 pb-1">
+      <div class="flex-1 flex flex-col overflow-y-auto scrollbar-thin px-4 pb-1">
         <div class="px-2 flex-none text-xs text-black/60 mb-1">People</div>
 
         <div

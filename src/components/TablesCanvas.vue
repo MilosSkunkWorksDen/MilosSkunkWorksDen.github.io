@@ -5,6 +5,9 @@ import CanvasActionBar from './canvas/CanvasActionBar.vue'
 import type { Person } from '@/composables/usePeople'
 import type { CanvasTable, ContextMenu } from './canvas/types'
 import PersonComponent from '@/components/Person.vue'
+import useTableGeometry from '@/composables/useTableGeometry'
+
+const { generateSeatingGrid, offsetUserCardCoordinates } = useTableGeometry()
 
 const props = defineProps<{
   people: Person[]
@@ -171,65 +174,31 @@ function handleHover(table?: CanvasTable) {
   }
 }
 
-function getDirection(angle: number) {
-  const deg = (angle * 180) / Math.PI
-  const normalized = (deg + 360) % 360
-
-  const directions = [
-    'right',
-    'bottom-right',
-    'bottom',
-    'bottom-left',
-    'left',
-    'top-left',
-    'top',
-    'top-right',
-  ]
-
-  return directions[Math.round(normalized / 45) % 8]
-}
-
-function offsetFromCenter(centerX: number, centerY: number, x: number, y: number, offset = 25) {
-  const dx = x - centerX
-  const dy = y - centerY
-
-  const len = Math.sqrt(dx * dx + dy * dy)
-
-  return {
-    x: centerX + (dx / len) * (len + offset),
-    y: centerY + (dy / len) * (len + offset),
-  }
-}
-
-function getSeatPosition(table: CanvasTable, index: number) {
-  const n = table.people.length
-
-  const angle = (index / n) * Math.PI * 2 - Math.PI / 2
-  const direction = getDirection(angle)
-
-  const radius = table.width / 2
-
-  const r = radius
-
-  const x = table.x + Math.cos(angle) * r
-  const y = table.y + Math.sin(angle) * r
-
-  const pos = offsetFromCenter(table.x, table.y, x, y, 50)
-
-  return {
-    ...pos,
-    direction,
-  }
-}
-
 const tablesWithCoordinates = computed(() => {
+  const card_width = 150
+  const card_height = 30
+
   return props.tables.map((t) => {
+    const seating = generateSeatingGrid(t, (card_height * 3) / 4, card_height)
+
     return {
       ...t,
-      people: t.people.map((p, index) => ({
-        ...p,
-        ...getSeatPosition(t, index),
-      })),
+      seating,
+      people: t.people.map((p, index) => {
+        const seat = seating.seats[index]!
+        const card = offsetUserCardCoordinates(seat, t, card_width, card_height)
+
+        return {
+          ...p,
+          label: index + 1 + '. ' + p.name, // + '\n ' + `${seat.x.toFixed(2)} _ ${seat.y.toFixed(2)}`,
+          seat,
+          card: {
+            ...card,
+            height: card_height,
+            width: card_width,
+          },
+        }
+      }),
     }
   })
 })
@@ -239,10 +208,7 @@ function onPersonDragStart(e: any, person: Person) {
 }
 
 function onTableDragMove(e: any, table: CanvasTable) {
-  console.log('onTableDragMove')
-
   const node = e.target
-
   emit('updateTableCoordinates', table, {
     x: node.x(),
     y: node.y(),
@@ -313,7 +279,7 @@ function fitText(node, maxWidth = 120) {
 
           <v-text
             :config="{
-              text: `${table.name}\n\n Count: ${table.people.length}`,
+              text: `${table.name}\n Count: ${table.people.length}`,
               x: table.x - table.width / 2,
               y: table.y - 10,
               width: table.width,
@@ -325,20 +291,17 @@ function fitText(node, maxWidth = 120) {
           />
 
           <v-group
-            v-for="person in table.people"
+            v-for="(person, index) in table.people"
             :key="person.id"
             :config="{
-              x: person.x,
-              y: person.y,
-              offsetX: 150 / 2,
-              offsetY: 50 / 2,
+              x: person.card.x,
+              y: person.card.y,
             }"
           >
-            <!-- background -->
             <v-rect
               :config="{
-                width: 150,
-                height: 50,
+                width: person.card.width,
+                height: person.card.height,
                 fill: 'white',
                 stroke: '#e2e8f0',
                 cornerRadius: 6,
@@ -346,34 +309,43 @@ function fitText(node, maxWidth = 120) {
                 shadowOpacity: 0.2,
               }"
             />
-
-            <!-- centered text -->
             <v-text
               :config="{
-                text: person.name,
+                text: person.label,
                 fontSize: 12,
                 fill: '#334155',
-                width: 150,
-                height: 50,
+                width: person.card.width,
+                height: person.card.height,
                 align: 'center',
                 verticalAlign: 'middle',
               }"
-              @text:transformend="(e) => fitText(e.target)"
             />
           </v-group>
 
-          <v-text />
-
-          <!-- <v-circle
-            v-for="(person, index) in table.people"
-            :key="person.id"
+          <v-group
+            v-if="false"
             :config="{
-              x: person.x,
-              y: person.y,
-              radius: 2,
-              fill: 'red',
+              listening: false,
             }"
-          /> -->
+          >
+            <v-circle
+              :config="{
+                ...table.seating.ring,
+                stroke: 'rgba(0,0,0,0.05)',
+                strokeWidth: 1,
+                fill: 'transparent',
+              }"
+            />
+            <v-circle
+              v-for="(dot, i) in table.seating.seats"
+              :key="i"
+              :config="{
+                ...dot,
+                radius: 1,
+                fill: 'rgba(255, 0, 0, 0.5)',
+              }"
+            />
+          </v-group>
         </v-group>
 
         <!-- <v-group

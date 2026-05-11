@@ -94,13 +94,13 @@ function handlePendingPeopleChange(table: Table) {}
     <div class="border-r border-neutral-100 flex flex-col gap-4 min-w-80 overflow-hidden">
       <div class="text-lg px-4 pt-4">Seating Assignments</div>
 
-      <div class="flex-1 flex flex-col overflow-hidden px-4 pb-1">
+      <div class="flex-1 flex flex-col overflow-y-auto scrollbar-thin px-4 pb-1">
         <div class="px-2 flex-none text-xs text-black/60 mb-1">People</div>
 
         <draggable
           v-model="pendingPeople"
           item-key="name"
-          class="overflow-y-auto scrollbar-thin flex-1"
+          class=""
           drag-class="draggable-person-drag"
           ghost-class="draggable-person-ghost"
           chosen-class="draggable-person-chosen"
@@ -108,7 +108,7 @@ function handlePendingPeopleChange(table: Table) {}
           @change="handlePendingPeopleChange"
         >
           <template #item="{ element, index }">
-            <div class="item my-1">
+            <div class="item">
               <PersonComponent :person="element" :key="element.name" />
             </div>
           </template>
