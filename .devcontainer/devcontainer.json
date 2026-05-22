@@ -8,8 +8,11 @@
 	"features": {
 		"ghcr.io/devcontainers-extra/features/npm-package:1": {}
 	},
+	"appPort": [
+		"5173:5173"
+	],
 	"forwardPorts": [
-		5173,
+		5173
 	],
 	"portsAttributes": {
 		"5173": {

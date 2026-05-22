@@ -6,6 +6,7 @@ import type { Person } from '@/composables/usePeople'
 import type { CanvasTable, ContextMenu } from './canvas/types'
 import PersonComponent from '@/components/Person.vue'
 import useTableGeometry from '@/composables/useTableGeometry'
+import { useSize, useView } from '@/composables/useCanvas'
 
 const { generateSeatingGrid, offsetUserCardCoordinates } = useTableGeometry()
 
@@ -28,90 +29,13 @@ const emit = defineEmits<{
 
 const stageRef = ref()
 const containerRef = ref()
-const containerSize = ref<{
-  width: number
-  height: number
-}>()
+
 const selectedId = ref<CanvasTable['id']>()
 const hoverId = ref<CanvasTable['id']>()
 
 const contextMenu = ref<ContextMenu>({
   visible: false,
 })
-
-const isSpaceDown = ref(false)
-const isPanMode = ref(false)
-
-function setPanMode(enabled: boolean) {
-  isPanMode.value = enabled
-  const stage = stageRef.value?.getNode()
-  if (!stage) return
-
-  stage.draggable(enabled)
-  stage.container().style.cursor = enabled ? 'grab' : 'default'
-}
-
-function onKeyDown(e) {
-  if (e.code === 'Space') {
-    isSpaceDown.value = true
-    setPanMode(true)
-  }
-}
-
-function onKeyUp(e) {
-  if (e.code === 'Space') {
-    isSpaceDown.value = false
-    setPanMode(false)
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', onKeyDown)
-  window.addEventListener('keyup', onKeyUp)
-
-  //  const el = val.getStage().attrs.container
-  const el = containerRef.value
-  const rect = el.getBoundingClientRect()
-
-  containerSize.value = {
-    width: rect.width,
-    height: rect.height,
-  }
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeyDown)
-  window.removeEventListener('keyup', onKeyUp)
-})
-
-function handleWheel(e: any) {
-  e.evt.preventDefault()
-
-  const stage = e.target.getStage()
-  const oldScale = stage.scaleX()
-
-  const pointer = stage.getPointerPosition()
-
-  const scaleBy = 1.05
-  const direction = e.evt.deltaY > 0 ? -1 : 1
-
-  const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy
-
-  stage.scale({ x: newScale, y: newScale })
-
-  const mousePointTo = {
-    x: (pointer.x - stage.x()) / oldScale,
-    y: (pointer.y - stage.y()) / oldScale,
-  }
-
-  const newPos = {
-    x: pointer.x - mousePointTo.x * newScale,
-    y: pointer.y - mousePointTo.y * newScale,
-  }
-
-  stage.position(newPos)
-  stage.batchDraw()
-}
 
 const baseTableStyle = {
   fill: '#ffffff',
@@ -214,40 +138,29 @@ function onTableDragMove(e: any, table: CanvasTable) {
     y: node.y(),
   })
 }
-
-function setTextNode(node) {
-  if (!node) return
-
-  const konvaNode = node.getNode() // important in vue-konva
-
-  konvaNode.offsetX(konvaNode.width() / 2)
-  konvaNode.offsetY(konvaNode.height() / 2)
-}
-
-function fitText(node, maxWidth = 120) {
-  let size = node.fontSize()
-
-  while (node.width() > maxWidth && size > 6) {
-    size -= 1
-    node.fontSize(size)
-  }
-}
+const sizeRef = ref()
+const { sizeConfig } = useSize(sizeRef)
+const { viewConfig, onWheel, resetView, onMouseDown, onMouseMove, onMouseUp, isPanning } =
+  useView(stageRef)
 </script>
 
 <template>
   <div
-    ref="containerRef"
     @dragover.prevent="onDragOver"
+    ref="containerRef"
     @drop="onDrop"
-    class="relative w-full h-full"
-    :class="{ 'cursor-grab active:cursor-grabbing': isPanMode }"
+    class="relative w-full h-full border border-amber-600 overflow-hidden"
+    :class="{ 'cursor-grab active:cursor-grabbing': isPanning }"
   >
+    <div ref="sizeRef" class="absolute inset-0 pointer-events-none" />
     <v-stage
-      v-if="containerSize && containerSize?.width > 0"
       ref="stageRef"
-      class="h-full w-full"
-      :config="{ ...containerSize }"
-      @wheel="handleWheel"
+      v-if="sizeConfig.width > 0 && sizeConfig.height > 0"
+      :config="{ ...sizeConfig, ...viewConfig }"
+      @wheel="onWheel"
+      @mousedown="onMouseDown"
+      @mousemove="onMouseMove"
+      @mouseup="onMouseUp"
     >
       <v-layer>
         <v-group
@@ -407,6 +320,7 @@ function fitText(node, maxWidth = 120) {
     <CanvasActionBar
       @createCircleTable="$emit('addCircleTable')"
       @createRectTable="$emit('addRectTable')"
+      @focusContent="resetView()"
     />
   </div>
 </template>
