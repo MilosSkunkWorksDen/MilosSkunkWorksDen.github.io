@@ -76,7 +76,7 @@ function handleUpdateTable(table: Table, ev: any = null) {
     }
   })
 
-  if (ev.removed) {
+  if (ev?.removed) {
     updated = true
     updateUser({ ...ev.removed.element, table_id: undefined })
   }
