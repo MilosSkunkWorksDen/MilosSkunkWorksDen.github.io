@@ -13,11 +13,25 @@ import ExportProject from './components/export-project/ExportProject.vue'
 import ImportProject from './components/import-project/ImportProject.vue'
 import { onMounted } from 'vue'
 
+// onMounted(() => {
+//   const redirect = sessionStorage.redirect
+//   if (redirect) {
+//     delete sessionStorage.redirect
+//     history.replaceState(null, '', redirect)
+//   }
+// })
+
 onMounted(() => {
-  const redirect = sessionStorage.redirect
+  const redirect = sessionStorage.getItem('redirect')
+
   if (redirect) {
-    delete sessionStorage.redirect
-    history.replaceState(null, '', redirect)
+    sessionStorage.removeItem('redirect')
+
+    // extract path after domain
+    const url = new URL(redirect)
+    const path = url.pathname + url.search + url.hash
+
+    router.replace(path)
   }
 })
 </script>
