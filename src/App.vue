@@ -9,6 +9,8 @@ import { LayoutGrid, NotebookText, NotepadText, PenTool } from 'lucide-vue-next'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Button } from './components/ui/button'
 import NewProject from './components/new-project/NewProject.vue'
+import ExportProject from './components/export-project/ExportProject.vue'
+import ImportProject from './components/import-project/ImportProject.vue'
 </script>
 
 <template>
@@ -37,7 +39,9 @@ import NewProject from './components/new-project/NewProject.vue'
       </div>
     </main>
 
-    <div class="fixed bottom-2 left-5">
+    <div class="fixed bottom-2 left-5 flex flex-col justify-center items-center gap-2">
+      <ExportProject />
+      <ImportProject />
       <NewProject />
     </div>
   </div>

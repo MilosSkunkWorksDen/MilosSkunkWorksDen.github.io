@@ -12,7 +12,7 @@ import Button from '../ui/button/Button.vue'
 function flush() {
   localStorage.removeItem('tables')
   localStorage.removeItem('db_people')
-  window.location.reload()
+  window.location.href = '/'
 }
 </script>
 
