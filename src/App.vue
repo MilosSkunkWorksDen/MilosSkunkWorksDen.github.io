@@ -11,6 +11,15 @@ import { Button } from './components/ui/button'
 import NewProject from './components/new-project/NewProject.vue'
 import ExportProject from './components/export-project/ExportProject.vue'
 import ImportProject from './components/import-project/ImportProject.vue'
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  const redirect = sessionStorage.redirect
+  if (redirect) {
+    delete sessionStorage.redirect
+    history.replaceState(null, '', redirect)
+  }
+})
 </script>
 
 <template>
