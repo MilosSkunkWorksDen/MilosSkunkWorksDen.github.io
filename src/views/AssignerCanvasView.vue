@@ -33,22 +33,20 @@ onMounted(() => {
   pendingPeople.value = people.value.filter((person) => !assignedIds.has(person.id))
 })
 
-function addCircleTable() {
+function addCircleTable(coo: { x: number; y: number }) {
   addNewTable({
+    ...coo,
     type: 'circle',
-    x: 200,
-    y: 200,
     width: 150,
   })
 
   saveTables()
 }
 
-function addRectTable() {
+function addRectTable(coo: { x: number; y: number }) {
   addNewTable({
+    ...coo,
     type: 'rect',
-    x: 200,
-    y: 200,
     width: 150,
     height: 150 * 3,
   })

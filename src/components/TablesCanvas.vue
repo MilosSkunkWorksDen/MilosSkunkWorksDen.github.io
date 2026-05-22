@@ -7,6 +7,7 @@ import type { CanvasTable, ContextMenu } from './canvas/types'
 import PersonComponent from '@/components/Person.vue'
 import useTableGeometry from '@/composables/useTableGeometry'
 import { useSize, useView } from '@/composables/useCanvas'
+import { useCreateTablesActions } from '@/composables/useCreateTablesActions'
 
 const { generateSeatingGrid, offsetUserCardCoordinates } = useTableGeometry()
 
@@ -16,8 +17,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'addCircleTable'): void
-  (e: 'addRectTable'): void
+  (e: 'addCircleTable', coordinates: { x: number; y: number }): void
+  (e: 'addRectTable', coordinates: { x: number; y: number }): void
   (e: 'deleteTable', table: CanvasTable): void
   (e: 'addPersonToTable', table: CanvasTable, person: Person): void
   (
@@ -142,6 +143,13 @@ const sizeRef = ref()
 const { sizeConfig } = useSize(sizeRef)
 const { viewConfig, onWheel, resetView, onMouseDown, onMouseMove, onMouseUp, isPanning } =
   useView(stageRef)
+
+const { placementMode, onCreateCircle, onCreateRect, onPlaceNewTable } = useCreateTablesActions({
+  stageRef,
+  viewConfig,
+  addCircleTable: (coordinates) => emit('addCircleTable', coordinates),
+  addRectTable: (coordinates) => emit('addRectTable', coordinates),
+})
 </script>
 
 <template>
@@ -150,7 +158,10 @@ const { viewConfig, onWheel, resetView, onMouseDown, onMouseMove, onMouseUp, isP
     ref="containerRef"
     @drop="onDrop"
     class="relative w-full h-full border border-amber-600 overflow-hidden"
-    :class="{ 'cursor-grab active:cursor-grabbing': isPanning }"
+    :class="{
+      'cursor-grab active:cursor-grabbing': isPanning,
+      'cursor-crosshair': placementMode,
+    }"
   >
     <div ref="sizeRef" class="absolute inset-0 pointer-events-none" />
     <v-stage
@@ -161,6 +172,11 @@ const { viewConfig, onWheel, resetView, onMouseDown, onMouseMove, onMouseUp, isP
       @mousedown="onMouseDown"
       @mousemove="onMouseMove"
       @mouseup="onMouseUp"
+      @click="
+        (e) => {
+          onPlaceNewTable(e)
+        }
+      "
     >
       <v-layer>
         <v-group
@@ -318,8 +334,8 @@ const { viewConfig, onWheel, resetView, onMouseDown, onMouseMove, onMouseUp, isP
     />
 
     <CanvasActionBar
-      @createCircleTable="$emit('addCircleTable')"
-      @createRectTable="$emit('addRectTable')"
+      @createCircleTable="onCreateCircle"
+      @createRectTable="onCreateRect"
       @focusContent="resetView()"
     />
   </div>

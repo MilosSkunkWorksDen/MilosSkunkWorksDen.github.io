@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Circle, Focus, Square } from 'lucide-vue-next'
+import { Circle, Focus, Square, SquareDashed } from 'lucide-vue-next'
 import { Separator } from '@/components/ui/separator'
 
 const emit = defineEmits<{
