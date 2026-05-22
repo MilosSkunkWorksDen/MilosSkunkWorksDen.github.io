@@ -106,9 +106,10 @@ function removePersonFromTable(table: CanvasTable, person: Person) {
 function updateTableCoordinates(
   table: CanvasTable,
   coordinates: { x: CanvasTable['x']; y: CanvasTable['y'] },
+  save: boolean = false,
 ) {
   updateTable({ ...table, ...coordinates })
-  saveTables()
+  if (save) saveTables()
 }
 
 function onDragStart(e: any, person: Person) {

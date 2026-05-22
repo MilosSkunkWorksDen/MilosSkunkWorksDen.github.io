@@ -8,8 +8,8 @@ import PersonComponent from '@/components/Person.vue'
 import useTableGeometry from '@/composables/useTableGeometry'
 import { useSize, useView } from '@/composables/useCanvas'
 import { useCreateTablesActions } from '@/composables/useCreateTablesActions'
-
-const { generateSeatingGrid, offsetUserCardCoordinates } = useTableGeometry()
+import CircleTable from './canvas/CircleTable.vue'
+import RectTable from './canvas/RectTable.vue'
 
 const props = defineProps<{
   people: Person[]
@@ -25,6 +25,7 @@ const emit = defineEmits<{
     e: 'updateTableCoordinates',
     table: CanvasTable,
     coordinates: { x: CanvasTable['x']; y: CanvasTable['y'] },
+    save: boolean,
   ): void
 }>()
 
@@ -99,46 +100,15 @@ function handleHover(table?: CanvasTable) {
   }
 }
 
-const tablesWithCoordinates = computed(() => {
-  const card_width = 150
-  const card_height = 30
-
-  return props.tables.map((t) => {
-    const seating = generateSeatingGrid(t, (card_height * 3) / 4, card_height)
-
-    return {
-      ...t,
-      seating,
-      people: t.people.map((p, index) => {
-        const seat = seating.seats[index]!
-        const card = offsetUserCardCoordinates(seat, t, card_width, card_height)
-
-        return {
-          ...p,
-          label: index + 1 + '. ' + p.name, // + '\n ' + `${seat.x.toFixed(2)} _ ${seat.y.toFixed(2)}`,
-          seat,
-          card: {
-            ...card,
-            height: card_height,
-            width: card_width,
-          },
-        }
-      }),
-    }
-  })
-})
-
 function onPersonDragStart(e: any, person: Person) {
   e.dataTransfer.setData('person_id', person.id)
 }
 
-function onTableDragMove(e: any, table: CanvasTable) {
-  const node = e.target
-  emit('updateTableCoordinates', table, {
-    x: node.x(),
-    y: node.y(),
-  })
-}
+/**
+ *
+ * NEW CLEAN CODE
+ *
+ */
 const sizeRef = ref()
 const { sizeConfig } = useSize(sizeRef)
 const { viewConfig, onWheel, resetView, onMouseDown, onMouseMove, onMouseUp, isPanning } =
@@ -150,6 +120,22 @@ const { placementMode, onCreateCircle, onCreateRect, onPlaceNewTable } = useCrea
   addCircleTable: (coordinates) => emit('addCircleTable', coordinates),
   addRectTable: (coordinates) => emit('addRectTable', coordinates),
 })
+
+const tableConfig = (table: CanvasTable) => {
+  return {
+    table: table,
+    onClick: () => (selectedId.value = table.id),
+    onMouseEnter: () => handleHover(table),
+    onMouseLeave: () => handleHover(),
+    onContextMenu: (e: any) => onRightClick(e, table),
+  }
+}
+
+const onTableDrag = (e: any, table: CanvasTable, save: boolean = false) => {
+  const node = e.target
+  const coordinates = { x: node.x(), y: node.y() }
+  emit('updateTableCoordinates', table, coordinates, save)
+}
 </script>
 
 <template>
@@ -180,148 +166,30 @@ const { placementMode, onCreateCircle, onCreateRect, onPlaceNewTable } = useCrea
     >
       <v-layer>
         <v-group
-          v-for="table in tablesWithCoordinates.filter((t) => t.type === 'circle')"
+          v-for="table in tables.filter((t) => t.type === 'circle')"
           :key="table.id"
-          :config="{
-            table: table,
-            onClick: () => (selectedId = table.id),
-            onMouseEnter: () => handleHover(table),
-            onMouseLeave: () => handleHover(),
-            onContextMenu: (e: any) => onRightClick(e, table),
-          }"
+          :config="{ ...tableConfig(table) }"
         >
-          <v-circle
-            :config="{
-              table: table,
-              x: table.x,
-              y: table.y,
-              radius: table.width / 2,
-              fill: baseTableStyle.fill,
-              stroke: baseTableStyle.stroke,
-              strokeWidth: 1.5,
-              shadowBlur: hoverId === table.id ? 14 : 8,
-              shadowOpacity: 0.1,
-              draggable: true,
-            }"
-            @dragmove="onTableDragMove($event, table)"
+          <CircleTable
+            :circleTable="table"
+            :hoverId="hoverId"
+            @dragmove="onTableDrag($event, table)"
+            @dragend="onTableDrag($event, table, true)"
           />
-
-          <v-text
-            :config="{
-              text: `${table.name}\n Count: ${table.people.length}`,
-              x: table.x - table.width / 2,
-              y: table.y - 10,
-              width: table.width,
-              align: 'center',
-              fontSize: 15,
-              fill: '#334155',
-              listening: false, // 👈 KEY FIX
-            }"
-          />
-
-          <v-group
-            v-for="(person, index) in table.people"
-            :key="person.id"
-            :config="{
-              x: person.card.x,
-              y: person.card.y,
-            }"
-          >
-            <v-rect
-              :config="{
-                width: person.card.width,
-                height: person.card.height,
-                fill: 'white',
-                stroke: '#e2e8f0',
-                cornerRadius: 6,
-                shadowBlur: 10,
-                shadowOpacity: 0.2,
-              }"
-            />
-            <v-text
-              :config="{
-                text: person.label,
-                fontSize: 12,
-                fill: '#334155',
-                width: person.card.width,
-                height: person.card.height,
-                align: 'center',
-                verticalAlign: 'middle',
-              }"
-            />
-          </v-group>
-
-          <v-group
-            v-if="false"
-            :config="{
-              listening: false,
-            }"
-          >
-            <v-circle
-              :config="{
-                ...table.seating.ring,
-                stroke: 'rgba(0,0,0,0.05)',
-                strokeWidth: 1,
-                fill: 'transparent',
-              }"
-            />
-            <v-circle
-              v-for="(dot, i) in table.seating.seats"
-              :key="i"
-              :config="{
-                ...dot,
-                radius: 1,
-                fill: 'rgba(255, 0, 0, 0.5)',
-              }"
-            />
-          </v-group>
         </v-group>
 
-        <!-- <v-group
-          v-for="table in tablesWithCoordinates.filter((t) => t.type === 'rect')"
+        <v-group
+          v-for="table in tables.filter((t) => t.type === 'rect')"
           :key="table.id"
-          :config="{
-            table: table,
-            draggable: true,
-            onClick: () => (selectedId = table.id),
-            onMouseEnter: () => handleHover(table),
-            onMouseLeave: () => handleHover(),
-            onContextMenu: (e: any) => onRightClick(e, table),
-          }"
+          :config="{ ...tableConfig(table) }"
         >
-          <v-rect
-            :config="{
-              table: table,
-              x: table.x,
-              y: table.y,
-              width: table.width,
-              height: table.height,
-              fill: baseTableStyle.fill,
-              stroke: selectedId === table.id ? '#3B82F6' : baseTableStyle.stroke,
-              strokeWidth: 1.5,
-              cornerRadius: 14,
-              shadowBlur: hoverId === table.id ? 50 : 8,
-              shadowOpacity: 0.1,
-              shadowOffsetY: 3,
-            }"
+          <RectTable
+            :rectTable="table"
+            :hoverId="hoverId"
+            @dragmove="onTableDrag($event, table)"
+            @dragend="onTableDrag($event, table, true)"
           />
-
-          <v-text
-            :config="{
-              table: table,
-              text: table.name,
-              x: table.x,
-              y: table.y,
-              width: table.width,
-              height: table.height,
-              align: 'center',
-              verticalAlign: 'middle',
-              fontSize: 13,
-              fill: '#334155',
-              listening: false,
-            }"
-          />
-        </v-group> -->
+        </v-group>
       </v-layer>
     </v-stage>
 
