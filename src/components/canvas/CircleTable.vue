@@ -57,6 +57,7 @@ const table = computed(() => {
 <template>
   <v-circle
     :config="{
+      isTable: true,
       table: table,
       x: table.x,
       y: table.y,
@@ -66,7 +67,7 @@ const table = computed(() => {
       strokeWidth: 1.5,
       shadowBlur: hoverId === table.id ? 14 : 8,
       shadowOpacity: 0.1,
-      draggable: true,
+      // draggable: true,
     }"
     @dragmove="$emit('dragmove', $event)"
     @dragend="$emit('dragend', $event)"

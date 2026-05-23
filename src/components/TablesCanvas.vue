@@ -131,10 +131,34 @@ const tableConfig = (table: CanvasTable) => {
   }
 }
 
-const onTableDrag = (e: any, table: CanvasTable, save: boolean = false) => {
-  const node = e.target
-  const coordinates = { x: node.x(), y: node.y() }
-  emit('updateTableCoordinates', table, coordinates, save)
+// const onTableDrag = (e: any, table: CanvasTable, save: boolean = false) => {
+//   const node = e.target
+//   const coordinates = { x: node.x(), y: node.y() }
+//   emit('updateTableCoordinates', table, coordinates, save)
+// }
+
+const onTableDragEnd = (e) => {
+  // e.target.clearCache()
+
+  const id = e.target.attrs?.table?.id
+  const table = props.tables?.find((t) => t.id === id)
+  const tableNode = e.target.getChildren?.()?.find((d) => d.attrs.isTable)
+
+  if (tableNode && table) {
+    let pos = {
+      x: e.target.x() + tableNode.x(),
+      y: e.target.y() + tableNode.y(),
+    }
+
+    e.target.x(0)
+    e.target.y(0)
+
+    emit('updateTableCoordinates', table, pos, true)
+  }
+}
+
+const onDragStart = (e) => {
+  // e.target.cache({ pixelRatio: window.devicePixelRatio * 5 })
 }
 </script>
 
@@ -163,32 +187,24 @@ const onTableDrag = (e: any, table: CanvasTable, save: boolean = false) => {
           onPlaceNewTable(e)
         }
       "
+      @dragstart="onDragStart"
+      @dragend="onTableDragEnd"
     >
       <v-layer>
         <v-group
           v-for="table in tables.filter((t) => t.type === 'circle')"
           :key="table.id"
-          :config="{ ...tableConfig(table) }"
+          :config="{ ...tableConfig(table), draggable: true }"
         >
-          <CircleTable
-            :circleTable="table"
-            :hoverId="hoverId"
-            @dragmove="onTableDrag($event, table)"
-            @dragend="onTableDrag($event, table, true)"
-          />
+          <CircleTable :circleTable="table" :hoverId="hoverId" />
         </v-group>
 
         <v-group
           v-for="table in tables.filter((t) => t.type === 'rect')"
           :key="table.id"
-          :config="{ ...tableConfig(table) }"
+          :config="{ ...tableConfig(table), draggable: true }"
         >
-          <RectTable
-            :rectTable="table"
-            :hoverId="hoverId"
-            @dragmove="onTableDrag($event, table)"
-            @dragend="onTableDrag($event, table, true)"
-          />
+          <RectTable :rectTable="table" :hoverId="hoverId" />
         </v-group>
       </v-layer>
     </v-stage>

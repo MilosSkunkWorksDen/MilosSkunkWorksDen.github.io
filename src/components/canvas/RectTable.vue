@@ -57,6 +57,7 @@ const table = computed(() => {
 <template>
   <v-rect
     :config="{
+      isTable: true,
       table: table,
       x: table.x,
       y: table.y,
@@ -70,7 +71,7 @@ const table = computed(() => {
       cornerRadius: 6,
       shadowBlur: hoverId === table.id ? 14 : 8,
       shadowOpacity: 0.1,
-      draggable: true,
+      // draggable: true,
     }"
     @dragmove="$emit('dragmove', $event)"
     @dragend="$emit('dragend', $event)"
