@@ -47,8 +47,8 @@ function addRectTable(coo: { x: number; y: number }) {
   addNewTable({
     ...coo,
     type: 'rect',
-    width: 150,
-    height: 150 * 3,
+    width: 150 * 2,
+    height: (150 * 2) / 3,
   })
 
   saveTables()
