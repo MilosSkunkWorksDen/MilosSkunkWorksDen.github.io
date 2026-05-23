@@ -159,7 +159,7 @@ const selectedTable = ref<CanvasTable>()
       />
     </div>
 
-    <!-- <SelectedTableSheet
+    <SelectedTableSheet
       :table="selectedTable"
       :open="!!selectedTable?.id"
       @update:open="
@@ -175,7 +175,7 @@ const selectedTable = ref<CanvasTable>()
           saveTables()
         }
       "
-    /> -->
+    />
     <!-- <div class="absolute bg-red-500 right-0 top-5 bottom-5">
       {{ selectedTable.name }}
     </div> -->
