@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import type { RectTable } from './types'
 import useTableGeometry from '@/composables/useTableGeometry'
 import { tableStyle } from './utils'
+import CanvasPersonCard from './CanvasPersonCard.vue'
 
 const { generateSeatingGrid, offsetUserCardCoordinates } = useTableGeometry()
 const card_width = 150
@@ -76,37 +77,7 @@ defineOptions({
     }"
   />
 
-  <v-group
-    v-for="(person, index) in table.people"
-    :key="person.id"
-    :config="{
-      x: person.card.x,
-      y: person.card.y,
-    }"
-  >
-    <v-rect
-      :config="{
-        width: person.card.width,
-        height: person.card.height,
-        fill: 'white',
-        stroke: '#e2e8f0',
-        cornerRadius: 6,
-        shadowBlur: 10,
-        shadowOpacity: 0.2,
-      }"
-    />
-    <v-text
-      :config="{
-        text: person.label,
-        fontSize: 12,
-        fill: '#334155',
-        width: person.card.width,
-        height: person.card.height,
-        align: 'center',
-        verticalAlign: 'middle',
-      }"
-    />
-  </v-group>
+  <CanvasPersonCard v-for="(person, index) in table.people" :key="person.id" :person="person" />
 
   <!-- <v-group
             :config="{

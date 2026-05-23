@@ -10,7 +10,7 @@ export const tableStyle = (isHovered: boolean) => ({
   ...(isHovered
     ? {
         shadowColor: 'rgba(0,0,0,0.12)',
-        shadowBlur: isHovered ? 10 : 0,
+        shadowBlur: 10,
       }
     : {}),
 })
@@ -34,7 +34,7 @@ export const cardStyle = (isHovered: boolean = false) => ({
   ...(isHovered
     ? {
         shadowColor: 'rgba(0,0,0,0.12)',
-        shadowBlur: isHovered ? 10 : 0,
+        shadowBlur: 10,
       }
     : {}),
 })
