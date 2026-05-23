@@ -2,24 +2,33 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
 import type { CanvasTable } from './types'
-import { ref, watch } from 'vue'
+import { ref, watch, type HtmlHTMLAttributes } from 'vue'
+
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { cn } from '@/lib/utils'
+import { X } from 'lucide-vue-next'
 
 const open = defineModel('open', { default: false })
 
-const props = defineProps<{
-  table?: CanvasTable
-}>()
+const props = withDefaults(
+  defineProps<{
+    class?: HtmlHTMLAttributes['class']
+    table?: CanvasTable
+    side?: string
+  }>(),
+  {
+    side: 'right',
+  },
+)
 
 const form = ref({
   name: props.table?.name,
@@ -37,43 +46,60 @@ watch(
 const emit = defineEmits<{
   (e: 'updateTable', table: CanvasTable): void
 }>()
+
+const close = () => (open.value = false)
 </script>
 
 <template>
-  <Sheet v-model:open="open">
-    <SheetTrigger as-child>
-      <!-- <Button variant="outline"> Open </Button> -->
-    </SheetTrigger>
-    <SheetContent overlay-class="bg-transparent!" @open-auto-focus="(e) => e.preventDefault()">
-      <SheetHeader>
-        <SheetTitle>Edit Table</SheetTitle>
-        <SheetDescription>
-          Make changes to your table here. Click save when you're done.
-        </SheetDescription>
-      </SheetHeader>
-      <div class="grid flex-1 auto-rows-min gap-6 px-4">
-        <div class="grid gap-3">
-          <Label for="table-name">Name</Label>
-          <Input id="table-name" v-model="form.name" />
+  <Card
+    v-show="open"
+    :data-state="open ? 'open' : 'closed'"
+    class="w-full max-w-sm justify-between rounded-none rounded-l-xl"
+    :class="
+      cn(
+        'bg-white data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500',
+        side === 'right' &&
+          'data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm',
+        side === 'left' &&
+          'data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm',
+        side === 'top' &&
+          'data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0 h-auto border-b',
+        side === 'bottom' &&
+          'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t',
+        props.class,
+      )
+    "
+  >
+    <Button @click="close" class="absolute top-2 right-2" variant="ghost" size="icon-sm">
+      <X />
+    </Button>
+
+    <CardHeader>
+      <CardTitle>Edit Table</CardTitle>
+      <CardDescription>
+        Make changes to your table here. Click save when you're done.
+      </CardDescription>
+      <CardAction> </CardAction>
+    </CardHeader>
+    <CardContent class="flex-1">
+      <form>
+        <div class="grid w-full items-center gap-4">
+          <div class="flex flex-col space-y-1.5">
+            <Label for="table-name">Name</Label>
+            <Input id="table-name" v-model="form.name" />
+          </div>
         </div>
-      </div>
-      <SheetFooter>
-        <Button
-          type="submit"
-          @click="
-            () => {
-              if (table) {
-                $emit('updateTable', { ...table, ...form } as any)
-              }
-            }
-          "
-        >
-          Save changes
-        </Button>
-        <SheetClose as-child>
-          <Button variant="outline"> Close </Button>
-        </SheetClose>
-      </SheetFooter>
-    </SheetContent>
-  </Sheet>
+      </form>
+    </CardContent>
+    <CardFooter class="flex flex-col gap-2">
+      <Button
+        class="w-full"
+        type="submit"
+        @click="() => table && $emit('updateTable', { ...table, ...form } as any)"
+      >
+        Save
+      </Button>
+      <Button @click="close" class="w-full" variant="outline"> Close </Button>
+    </CardFooter>
+  </Card>
 </template>
