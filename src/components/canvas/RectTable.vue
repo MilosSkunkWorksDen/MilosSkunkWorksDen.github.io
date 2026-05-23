@@ -2,33 +2,20 @@
 import { computed } from 'vue'
 import type { RectTable } from './types'
 import useTableGeometry from '@/composables/useTableGeometry'
+import { tableStyle } from './utils'
 
 const { generateSeatingGrid, offsetUserCardCoordinates } = useTableGeometry()
 const card_width = 150
 const card_height = 30
 
-const emit = defineEmits<{
-  (e: 'dragmove', event: any): void
-  (e: 'dragend', event: any): void
-}>()
-
 const props = defineProps<{
-  rectTable: RectTable
-  hoverId?: RectTable['id']
+  baseTable: RectTable
+  hoveredId?: RectTable['id']
+  selectedId?: RectTable['id']
 }>()
-
-const baseTableStyle = {
-  fill: '#ffffff',
-  stroke: '#CBD5E1',
-  strokeWidth: 1.5,
-  shadowColor: 'rgba(0,0,0,0.08)',
-  shadowBlur: 10,
-  shadowOffsetY: 4,
-  cornerRadius: 10,
-}
 
 const table = computed(() => {
-  const t = props.rectTable
+  const t = props.baseTable
 
   const seating = generateSeatingGrid(t, (card_height * 3) / 4, card_height)
 
@@ -52,12 +39,18 @@ const table = computed(() => {
     }),
   }
 })
+
+defineOptions({
+  inheritAttrs: false,
+})
 </script>
 
 <template>
   <v-rect
+    v-bind="$attrs"
     :config="{
-      isTable: true,
+      elType: 'table',
+      id: `table-${table.id}`,
       table: table,
       x: table.x,
       y: table.y,
@@ -65,16 +58,9 @@ const table = computed(() => {
       height: table.height,
       offsetX: table.width / 2,
       offsetY: table.height / 2,
-      fill: baseTableStyle.fill,
-      stroke: baseTableStyle.stroke,
-      strokeWidth: 1.5,
-      cornerRadius: 6,
-      shadowBlur: hoverId === table.id ? 14 : 8,
-      shadowOpacity: 0.1,
+      ...tableStyle(hoveredId == table.id),
       // draggable: true,
     }"
-    @dragmove="$emit('dragmove', $event)"
-    @dragend="$emit('dragend', $event)"
   />
 
   <v-text

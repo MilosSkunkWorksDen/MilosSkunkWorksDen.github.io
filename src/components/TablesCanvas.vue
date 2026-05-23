@@ -10,6 +10,7 @@ import { useSize, useView } from '@/composables/useCanvas'
 import { useCreateTablesActions } from '@/composables/useCreateTablesActions'
 import CircleTable from './canvas/CircleTable.vue'
 import RectTable from './canvas/RectTable.vue'
+import { useCanvasTablesResize, useCanvasTablesSelect } from '@/composables/useCanvasTablesSelect'
 
 const props = defineProps<{
   people: Person[]
@@ -27,41 +28,11 @@ const emit = defineEmits<{
     coordinates: { x: CanvasTable['x']; y: CanvasTable['y'] },
     save: boolean,
   ): void
+  (e: 'updateTable', table: CanvasTable): void
 }>()
 
 const stageRef = ref()
 const containerRef = ref()
-
-const selectedId = ref<CanvasTable['id']>()
-const hoverId = ref<CanvasTable['id']>()
-
-const contextMenu = ref<ContextMenu>({
-  visible: false,
-})
-
-const baseTableStyle = {
-  fill: '#ffffff',
-  stroke: '#CBD5E1',
-  strokeWidth: 1.5,
-  shadowColor: 'rgba(0,0,0,0.08)',
-  shadowBlur: 10,
-  shadowOffsetY: 4,
-  cornerRadius: 10,
-}
-
-function onRightClick(e: any, table: CanvasTable) {
-  e.evt.preventDefault()
-
-  const stage = e.target.getStage()
-  const pos = stage.getPointerPosition()
-
-  contextMenu.value = {
-    visible: true,
-    x: pos.x,
-    y: pos.y,
-    table,
-  }
-}
 
 function getDragOverShape(e: any) {
   const stage = stageRef.value.getStage()
@@ -92,14 +63,6 @@ function onDragOver(e: any) {
   handleHover(shape?.attrs.table)
 }
 
-function handleHover(table?: CanvasTable) {
-  if (table?.id) {
-    hoverId.value = table.id
-  } else {
-    hoverId.value = undefined
-  }
-}
-
 function onPersonDragStart(e: any, person: Person) {
   e.dataTransfer.setData('person_id', person.id)
 }
@@ -121,33 +84,31 @@ const { placementMode, onCreateCircle, onCreateRect, onPlaceNewTable } = useCrea
   addRectTable: (coordinates) => emit('addRectTable', coordinates),
 })
 
-const tableConfig = (table: CanvasTable) => {
-  return {
-    table: table,
-    onClick: () => (selectedId.value = table.id),
-    onMouseEnter: () => handleHover(table),
-    onMouseLeave: () => handleHover(),
-    onContextMenu: (e: any) => onRightClick(e, table),
+const { handleHover, selectedId, hoveredId, tableEvents, contextMenu, checkIfTableClick } =
+  useCanvasTablesSelect(stageRef)
+
+const { transformerRef, onTransformEnd } = useCanvasTablesResize({
+  stageRef,
+  selectedId,
+  transformed: (t) => emit('updateTable', t),
+})
+
+const onDragEnd = (e: any) => {
+  const elType = e.target.attrs?.elType
+  if (elType == 'table-group') {
+    return onTableDragged(e)
   }
 }
 
-// const onTableDrag = (e: any, table: CanvasTable, save: boolean = false) => {
-//   const node = e.target
-//   const coordinates = { x: node.x(), y: node.y() }
-//   emit('updateTableCoordinates', table, coordinates, save)
-// }
-
-const onTableDragEnd = (e) => {
-  // e.target.clearCache()
-
-  const id = e.target.attrs?.table?.id
+const onTableDragged = (e: any) => {
+  const id = e.target.attrs?.tableId
   const table = props.tables?.find((t) => t.id === id)
-  const tableNode = e.target.getChildren?.()?.find((d) => d.attrs.isTable)
+  const node = e.target.getChildren?.()?.find((d: any) => d.attrs.elType == 'table')
 
-  if (tableNode && table) {
+  if (node && table) {
     let pos = {
-      x: e.target.x() + tableNode.x(),
-      y: e.target.y() + tableNode.y(),
+      x: e.target.x() + node.x(),
+      y: e.target.y() + node.y(),
     }
 
     e.target.x(0)
@@ -157,9 +118,9 @@ const onTableDragEnd = (e) => {
   }
 }
 
-const onDragStart = (e) => {
-  // e.target.cache({ pixelRatio: window.devicePixelRatio * 5 })
-}
+const selectedTable = computed(() => {
+  return selectedId.value ? props.tables?.find((t) => t.id === selectedId.value) : undefined
+})
 </script>
 
 <template>
@@ -183,29 +144,52 @@ const onDragStart = (e) => {
       @mousemove="onMouseMove"
       @mouseup="onMouseUp"
       @click="
-        (e) => {
+        (e: any) => {
           onPlaceNewTable(e)
+          checkIfTableClick(e)
         }
       "
-      @dragstart="onDragStart"
-      @dragend="onTableDragEnd"
+      @dragend="onDragEnd"
     >
       <v-layer>
         <v-group
           v-for="table in tables.filter((t) => t.type === 'circle')"
           :key="table.id"
-          :config="{ ...tableConfig(table), draggable: true }"
+          :config="{ elType: 'table-group', tableId: table.id, draggable: true }"
         >
-          <CircleTable :circleTable="table" :hoverId="hoverId" />
+          <CircleTable
+            v-on="tableEvents(table)"
+            :baseTable="table"
+            :hoveredId="hoveredId"
+            :selectedId="selectedId"
+            @transformend="onTransformEnd($event, table)"
+          />
         </v-group>
 
         <v-group
           v-for="table in tables.filter((t) => t.type === 'rect')"
           :key="table.id"
-          :config="{ ...tableConfig(table), draggable: true }"
+          :config="{ elType: 'table-group', tableId: table.id, draggable: true }"
         >
-          <RectTable :rectTable="table" :hoverId="hoverId" />
+          <RectTable
+            v-on="tableEvents(table)"
+            :baseTable="table"
+            :hoveredId="hoveredId"
+            :selectedId="selectedId"
+            @transformend="onTransformEnd($event, table)"
+          />
         </v-group>
+
+        <v-transformer
+          ref="transformerRef"
+          :config="{
+            keepRatio: selectedTable?.type === 'circle',
+            enabledAnchors:
+              selectedTable?.type === 'circle'
+                ? ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+                : undefined,
+          }"
+        />
       </v-layer>
     </v-stage>
 

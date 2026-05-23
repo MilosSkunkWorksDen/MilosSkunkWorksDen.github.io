@@ -2,33 +2,21 @@
 import { computed } from 'vue'
 import type { CircleTable } from './types'
 import useTableGeometry from '@/composables/useTableGeometry'
+import { tableStyle } from './utils'
+import CanvasPersonCard from './CanvasPersonCard.vue'
 
 const { generateSeatingGrid, offsetUserCardCoordinates } = useTableGeometry()
 const card_width = 150
 const card_height = 30
 
-const emit = defineEmits<{
-  (e: 'dragmove', event: any): void
-  (e: 'dragend', event: any): void
-}>()
-
 const props = defineProps<{
-  circleTable: CircleTable
-  hoverId?: CircleTable['id']
+  baseTable: CircleTable
+  hoveredId?: CircleTable['id']
+  selectedId?: CircleTable['id']
 }>()
-
-const baseTableStyle = {
-  fill: '#ffffff',
-  stroke: '#CBD5E1',
-  strokeWidth: 1.5,
-  shadowColor: 'rgba(0,0,0,0.08)',
-  shadowBlur: 10,
-  shadowOffsetY: 4,
-  cornerRadius: 10,
-}
 
 const table = computed(() => {
-  const t = props.circleTable
+  const t = props.baseTable
 
   const seating = generateSeatingGrid(t, (card_height * 3) / 4, card_height)
 
@@ -52,25 +40,25 @@ const table = computed(() => {
     }),
   }
 })
+
+defineOptions({
+  inheritAttrs: false,
+})
 </script>
 
 <template>
   <v-circle
+    v-bind="$attrs"
     :config="{
-      isTable: true,
+      elType: 'table',
+      id: `table-${table.id}`,
       table: table,
       x: table.x,
       y: table.y,
       radius: table.width / 2,
-      fill: baseTableStyle.fill,
-      stroke: baseTableStyle.stroke,
-      strokeWidth: 1.5,
-      shadowBlur: hoverId === table.id ? 14 : 8,
-      shadowOpacity: 0.1,
+      ...tableStyle(hoveredId == table.id),
       // draggable: true,
     }"
-    @dragmove="$emit('dragmove', $event)"
-    @dragend="$emit('dragend', $event)"
   />
 
   <v-text
@@ -86,37 +74,7 @@ const table = computed(() => {
     }"
   />
 
-  <v-group
-    v-for="(person, index) in table.people"
-    :key="person.id"
-    :config="{
-      x: person.card.x,
-      y: person.card.y,
-    }"
-  >
-    <v-rect
-      :config="{
-        width: person.card.width,
-        height: person.card.height,
-        fill: 'white',
-        stroke: '#e2e8f0',
-        cornerRadius: 6,
-        shadowBlur: 10,
-        shadowOpacity: 0.2,
-      }"
-    />
-    <v-text
-      :config="{
-        text: person.label,
-        fontSize: 12,
-        fill: '#334155',
-        width: person.card.width,
-        height: person.card.height,
-        align: 'center',
-        verticalAlign: 'middle',
-      }"
-    />
-  </v-group>
+  <CanvasPersonCard v-for="(person, index) in table.people" :key="person.id" :person="person" />
 
   <!-- <v-group
             :config="{

@@ -145,6 +145,12 @@ function onDragStart(e: any, person: Person) {
         @delete-table="deleteTable"
         @add-person-to-table="addPersonToTable"
         @update-table-coordinates="updateTableCoordinates"
+        @update-table="
+          (t) => {
+            updateTable({ ...t })
+            saveTables()
+          }
+        "
         :people="pendingPeople"
         :tables="tables"
       />
