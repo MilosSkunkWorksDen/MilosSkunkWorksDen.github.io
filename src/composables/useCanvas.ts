@@ -130,6 +130,8 @@ export function useView(stageRef: Ref) {
   }
 
   const onKeyDown = (e) => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+
     if (e.code === 'Space' && !isSpaceHeld.value) {
       e.preventDefault()
       isSpaceHeld.value = true

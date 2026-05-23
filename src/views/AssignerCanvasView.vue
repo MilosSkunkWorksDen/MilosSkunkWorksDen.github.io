@@ -10,6 +10,7 @@ import { nextTick, onMounted, ref, watch } from 'vue'
 import draggable from 'vuedraggable'
 import useCanvasTables from '@/composables/useCanvasTables'
 import type { CanvasTable } from '@/components/canvas/types'
+import SelectedTableSheet from '@/components/canvas/SelectedTableSheet.vue'
 
 const tablesListRef = ref<HTMLDivElement>()
 
@@ -116,6 +117,7 @@ function onDragStart(e: any, person: Person) {
   e.dataTransfer.setData('person_id', person.id)
 }
 
+const selectedTable = ref<CanvasTable>()
 // watch(tables, (v) => console.log({ ...v }), { deep: true })
 </script>
 
@@ -153,8 +155,30 @@ function onDragStart(e: any, person: Person) {
         "
         :people="pendingPeople"
         :tables="tables"
+        v-model:selected-table="selectedTable"
       />
     </div>
+
+    <!-- <SelectedTableSheet
+      :table="selectedTable"
+      :open="!!selectedTable?.id"
+      @update:open="
+        (o) => {
+          if (!o) {
+            selectedTable = undefined
+          }
+        }
+      "
+      @update-table="
+        (t) => {
+          updateTable({ ...t })
+          saveTables()
+        }
+      "
+    /> -->
+    <!-- <div class="absolute bg-red-500 right-0 top-5 bottom-5">
+      {{ selectedTable.name }}
+    </div> -->
 
     <!-- <div class="fixed bottom-5 right-5">
       <Button size="lg" @click="handleSave"> Save </Button>

@@ -120,8 +120,12 @@ const onTableDragged = (e: any) => {
   }
 }
 
-const selectedTable = computed(() => {
-  return selectedId.value ? props.tables?.find((t) => t.id === selectedId.value) : undefined
+const selectedTable = defineModel<CanvasTable>('selectedTable')
+watch(selectedId, (id) => {
+  selectedTable.value = id ? props.tables?.find((t) => t.id === id) : undefined
+})
+watch(selectedTable, (table) => {
+  selectedId.value = table?.id
 })
 </script>
 
