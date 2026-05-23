@@ -50,8 +50,8 @@ onMounted(() => {
         <!-- <div class="px-2 text-xs h-8 text-black/60 flex justify-start items-center">Platform</div> -->
         <div class="text-sm flex flex-col gap-1 px-2 items-center">
           <SidebarNavigation href="/" title="Seating Assignments" :icon="LayoutGrid" />
-          <SidebarNavigation href="/people" title="People" :icon="Users" />
           <SidebarNavigation href="/canvas" title="Canvas" :icon="PenTool" />
+          <SidebarNavigation href="/people" title="People" :icon="Users" />
         </div>
       </div>
     </div>

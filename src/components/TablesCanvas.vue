@@ -167,7 +167,7 @@ const onDragStart = (e) => {
     @dragover.prevent="onDragOver"
     ref="containerRef"
     @drop="onDrop"
-    class="relative w-full h-full border border-amber-600 overflow-hidden"
+    class="relative w-full h-full overflow-hidden"
     :class="{
       'cursor-grab active:cursor-grabbing': isPanning,
       'cursor-crosshair': placementMode,

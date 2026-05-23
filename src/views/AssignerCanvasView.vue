@@ -121,7 +121,7 @@ function onDragStart(e: any, person: Person) {
 
 <template>
   <div class="flex-1 flex max-h-[calc(100svh-10px)] overflow-hidden">
-    <div class="border-r border-neutral-100 flex flex-col gap-4 min-w-80 overflow-hidden">
+    <div class="border-r shadow-sm flex flex-col gap-4 min-w-80 overflow-hidden z-1">
       <div class="text-lg px-4 pt-4">Seating Assignments</div>
 
       <div class="flex-1 flex flex-col overflow-y-auto scrollbar-thin px-4 pb-1">
