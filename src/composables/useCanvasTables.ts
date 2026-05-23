@@ -7,10 +7,22 @@ import type { BaseCircle, BaseRect, CanvasTable } from '@/components/canvas/type
 const STORAGE_KEY = 'tables'
 
 export default function useCanvasTables() {
-  const tables = ref<CanvasTable[]>(load())
+  const tables = ref<CanvasTable[]>(load().map(withDefaultsFallback))
 
   const getUniqueId = () => {
     return uuid()
+  }
+
+  function withDefaultsFallback(t: any, index: number) {
+    return !t.type
+      ? ({
+          type: 'circle',
+          width: 150,
+          x: index * 150,
+          y: 0,
+          ...t,
+        } as CanvasTable)
+      : t
   }
 
   function load() {
