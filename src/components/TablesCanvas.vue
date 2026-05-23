@@ -87,11 +87,13 @@ const { placementMode, onCreateCircle, onCreateRect, onPlaceNewTable } = useCrea
 const { handleHover, selectedId, hoveredId, tableEvents, contextMenu, checkIfTableClick } =
   useCanvasTablesSelect(stageRef)
 
-const { transformerRef, onTransformEnd } = useCanvasTablesResize({
-  stageRef,
-  selectedId,
-  transformed: (t) => emit('updateTable', t),
-})
+const { transformerRef, onTransformEnd, transformTable, removeTransformer } = useCanvasTablesResize(
+  {
+    stageRef,
+    selectedId,
+    transformed: (t) => emit('updateTable', t),
+  },
+)
 
 const onDragEnd = (e: any) => {
   const elType = e.target.attrs?.elType
@@ -147,6 +149,7 @@ const selectedTable = computed(() => {
         (e: any) => {
           onPlaceNewTable(e)
           checkIfTableClick(e)
+          removeTransformer()
         }
       "
       @dragend="onDragEnd"
@@ -199,6 +202,7 @@ const selectedTable = computed(() => {
       :y="contextMenu.y"
       :table="contextMenu.table"
       @delete="$emit('deleteTable', $event)"
+      @resize="transformTable($event)"
     />
 
     <CanvasActionBar

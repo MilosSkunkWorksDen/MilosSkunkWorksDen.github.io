@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { watch } from 'vue'
 import DropdownMenuShortcut from '../ui/dropdown-menu/DropdownMenuShortcut.vue'
-import { Pen, SquarePen, TrashIcon } from 'lucide-vue-next'
+import { MoveDiagonal, Pen, SquarePen, TrashIcon } from 'lucide-vue-next'
 import type { CanvasTable } from './types'
 
 interface Props {
@@ -30,6 +30,7 @@ function updateOpen(val: boolean) {
 const emit = defineEmits<{
   (e: 'delete', table: CanvasTable): void
   (e: 'edit', table: CanvasTable): void
+  (e: 'resize', table: CanvasTable): void
 }>()
 </script>
 
@@ -45,6 +46,10 @@ const emit = defineEmits<{
         <DropdownMenuItem @click="$emit('edit', table as CanvasTable)">
           <SquarePen />
           Edit
+        </DropdownMenuItem>
+        <DropdownMenuItem @click="$emit('resize', table as CanvasTable)">
+          <MoveDiagonal />
+          Resize
         </DropdownMenuItem>
         <DropdownMenuItem variant="destructive" @click="$emit('delete', table as CanvasTable)">
           <Pen />

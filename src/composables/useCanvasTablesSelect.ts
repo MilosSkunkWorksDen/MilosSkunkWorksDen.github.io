@@ -66,19 +66,19 @@ interface ResizeProps {
 
 export function useCanvasTablesResize({ stageRef, selectedId, transformed }: ResizeProps) {
   const transformerRef = ref()
-  watch(selectedId, (id) => {
-    const transformer = transformerRef.value.getNode()
+  // watch(selectedId, (id) => {
+  //   const transformer = transformerRef.value.getNode()
 
-    if (!id) {
-      transformer.nodes([])
-      return
-    }
+  //   if (!id) {
+  //     transformer.nodes([])
+  //     return
+  //   }
 
-    const stage = stageRef.value.getStage()
-    const node = stage.findOne(`#table-${id}`)
+  //   const stage = stageRef.value.getStage()
+  //   const node = stage.findOne(`#table-${id}`)
 
-    transformer.nodes([node])
-  })
+  //   transformer.nodes([node])
+  // })
 
   const onTransformEnd = (e: any, table: CanvasTable) => {
     const node = e.target
@@ -106,8 +106,22 @@ export function useCanvasTablesResize({ stageRef, selectedId, transformed }: Res
     node.scaleY(1)
   }
 
+  const transformTable = (table: CanvasTable) => {
+    const transformer = transformerRef.value.getNode()
+    const stage = stageRef.value.getStage()
+    const node = stage.findOne(`#table-${table.id}`)
+    transformer.nodes([node])
+  }
+
+  const removeTransformer = () => {
+    const transformer = transformerRef.value.getNode()
+    transformer.nodes([])
+  }
+
   return {
     transformerRef,
     onTransformEnd,
+    transformTable,
+    removeTransformer,
   }
 }
