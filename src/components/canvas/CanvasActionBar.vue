@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Circle, Focus, Square, SquareDashed } from 'lucide-vue-next'
+import { Circle, Focus, ImageDown, Square, SquareDashed } from 'lucide-vue-next'
 import { Separator } from '@/components/ui/separator'
 
 const emit = defineEmits<{
   (e: 'createCircleTable'): void
   (e: 'createRectTable'): void
   (e: 'focusContent'): void
+  (e: 'downloadLayout'): void
 }>()
 </script>
 
@@ -26,6 +27,10 @@ const emit = defineEmits<{
       <Separator orientation="vertical" />
       <div @click="$emit('focusContent')" class="hover:bg-primary/5 text-primary p-1 rounded-md">
         <Focus strokeWidth="{1}" class="size-6" />
+      </div>
+
+      <div @click="$emit('downloadLayout')" class="hover:bg-primary/5 text-primary p-1 rounded-md">
+        <ImageDown strokeWidth="{1}" class="size-6" />
       </div>
     </div>
   </div>
