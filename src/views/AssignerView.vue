@@ -89,6 +89,17 @@ function handleUpdateTable(table: Table, ev: any = null) {
 }
 
 function handlePendingPeopleChange(table: Table) {}
+
+const handleTablesOrderChange = async () => {
+  tables.value.forEach((table, index) => {
+    updateTable({
+      ...table,
+      order: index,
+    })
+  })
+
+  saveTables()
+}
 </script>
 
 <template>
@@ -119,23 +130,24 @@ function handlePendingPeopleChange(table: Table) {}
     </div>
 
     <div ref="tablesListRef" class="flex-1 p-4 overflow-y-auto scrollbar-thin">
-      <TransitionGroup
-        @after-enter="onAfterEnter"
-        enter-from-class="opacity-0 translate-y-4 scale-95"
-        enter-active-class="transition-all duration-300 ease-out"
-        enter-to-class="opacity-100 translate-y-0 scale-100"
-        leave-from-class="opacity-100"
-        leave-active-class="transition-all duration-300 ease-in"
-        leave-to-class="opacity-0"
+      <draggable
+        v-model="tables"
+        item-key="id"
+        handle=".drag-handle"
+        :animation="200"
+        @end="handleTablesOrderChange"
       >
-        <TableComponent
-          @delete="handleRemoveTable(t)"
-          @update="handleUpdateTable"
-          v-for="(t, index) in tables"
-          :table="t"
-          :key="t.id"
-        />
-      </TransitionGroup>
+        <template #item="{ element: t, index }">
+          <div class="relative">
+            <TableComponent
+              @delete="handleRemoveTable(t)"
+              @update="handleUpdateTable"
+              :table="t"
+              :index="index"
+            />
+          </div>
+        </template>
+      </draggable>
       <div class="flex justify-center items-center m-4">
         <Button variant="secondary" @click="handleAddTable">
           <Plus />

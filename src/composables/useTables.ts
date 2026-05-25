@@ -6,18 +6,19 @@ export interface Table {
   id: string | number
   name: string
   people: Person[]
+  order?: number
 }
 
 const STORAGE_KEY = 'tables'
 
 export default function useTables() {
-  const tables = ref<Table[]>(load())
+  const tables = ref<Table[]>(load().sort((a, b) => (a.order || 0) - (b.order || 0)))
 
   const getUniqueId = () => {
     return uuid()
   }
 
-  function load() {
+  function load(): Table[] {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (!raw) return []

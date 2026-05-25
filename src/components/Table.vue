@@ -4,9 +4,9 @@ import { Check, ChevronRight, X } from '@lucide/vue'
 import draggable from 'vuedraggable'
 import PersonComponent from './Person.vue'
 import Button from './ui/button/Button.vue'
-import { Trash } from 'lucide-vue-next'
+import { GripVertical, Trash } from 'lucide-vue-next'
 import { Input } from '@/components/ui/input'
-import { nextTick, ref, watch } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 
 const isOpen = defineModel('open', {
   default: true,
@@ -43,6 +43,17 @@ watch(isEditingName, async (val) => {
 function handlePeopleChange(evt: { added?: any; removed?: any }) {
   emit('update', props.table, evt)
 }
+
+watch(isOpen, (val) => {
+  const stored = JSON.parse(localStorage.getItem('tablesOpenState') || '{}')
+  stored[props.table.id] = val
+  localStorage.setItem('tablesOpenState', JSON.stringify(stored))
+})
+
+onMounted(() => {
+  const stored = JSON.parse(localStorage.getItem('tablesOpenState') || '{}')
+  isOpen.value = stored[props.table.id] ?? false
+})
 </script>
 
 <template>
@@ -76,6 +87,13 @@ function handlePeopleChange(evt: { added?: any; removed?: any }) {
       </div>
 
       <div class="flex items-center justify-center gap-2 text-xs">
+        <Button
+          class="drag-handle cursor-grab active:cursor-grabbing"
+          variant="ghost"
+          size="icon-sm"
+        >
+          <GripVertical />
+        </Button>
         <Button @click="$emit('delete', $event)" variant="destructive" size="icon-sm">
           <Trash></Trash>
         </Button>
