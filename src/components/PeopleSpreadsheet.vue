@@ -76,7 +76,13 @@ function addRow() {
 
 <template>
   <div class="wrapper overflow-x-auto">
-    <Spreadsheet ref="spreadsheetRef" :onchange="updates">
+    <Spreadsheet
+      ref="spreadsheetRef"
+      :onchange="updates"
+      :onundo="updates"
+      :onredo="updates"
+      :ondeleterow="updates"
+    >
       <Worksheet
         :data="encode(model ?? [])"
         :columns="columns"
