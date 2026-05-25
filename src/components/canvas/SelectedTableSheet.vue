@@ -17,16 +17,16 @@ import {
 import { cn } from '@/lib/utils'
 import { X } from 'lucide-vue-next'
 
-const open = defineModel('open', { default: false })
-
 const props = withDefaults(
   defineProps<{
     class?: HtmlHTMLAttributes['class']
     table?: CanvasTable
     side?: string
+    open: boolean
   }>(),
   {
     side: 'right',
+    open: false,
   },
 )
 
@@ -45,9 +45,10 @@ watch(
 
 const emit = defineEmits<{
   (e: 'updateTable', table: CanvasTable): void
+  (e: 'close'): void
 }>()
 
-const close = () => (open.value = false)
+const close = () => emit('close')
 </script>
 
 <template>
@@ -74,32 +75,45 @@ const close = () => (open.value = false)
       <X />
     </Button>
 
-    <CardHeader>
-      <CardTitle>Edit Table</CardTitle>
-      <CardDescription>
-        Make changes to your table here. Click save when you're done.
-      </CardDescription>
-      <CardAction> </CardAction>
-    </CardHeader>
-    <CardContent class="flex-1">
-      <form>
-        <div class="grid w-full items-center gap-4">
-          <div class="flex flex-col space-y-1.5">
-            <Label for="table-name">Name</Label>
-            <Input id="table-name" v-model="form.name" />
+    <template v-if="table">
+      <CardHeader>
+        <CardTitle>Edit Table</CardTitle>
+        <CardDescription>
+          Make changes to your table here. Click save when you're done.
+        </CardDescription>
+        <CardAction> </CardAction>
+      </CardHeader>
+      <CardContent class="flex-1">
+        <form>
+          <div class="grid w-full items-center gap-4">
+            <div class="flex flex-col space-y-1.5">
+              <Label for="table-name">Name</Label>
+              <Input id="table-name" v-model="form.name" />
+            </div>
           </div>
-        </div>
-      </form>
-    </CardContent>
-    <CardFooter class="flex flex-col gap-2">
-      <Button
-        class="w-full"
-        type="submit"
-        @click="() => table && $emit('updateTable', { ...table, ...form } as any)"
+        </form>
+      </CardContent>
+      <CardFooter class="flex flex-col gap-2">
+        <Button
+          class="w-full"
+          type="submit"
+          @click="() => table && $emit('updateTable', { ...table, ...form } as any)"
+        >
+          Save
+        </Button>
+        <Button @click="close" class="w-full" variant="outline"> Close </Button>
+      </CardFooter>
+    </template>
+    <template v-else>
+      <CardHeader>
+        <CardTitle>No Table Selected</CardTitle>
+        <CardDescription> Select a table to start editing. </CardDescription>
+      </CardHeader>
+      <CardContent
+        class="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground"
       >
-        Save
-      </Button>
-      <Button @click="close" class="w-full" variant="outline"> Close </Button>
-    </CardFooter>
+        <p class="text-sm">No table selected</p>
+      </CardContent>
+    </template>
   </Card>
 </template>

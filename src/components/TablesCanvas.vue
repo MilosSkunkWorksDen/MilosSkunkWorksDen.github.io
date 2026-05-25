@@ -21,6 +21,7 @@ const emit = defineEmits<{
   (e: 'addCircleTable', coordinates: { x: number; y: number }): void
   (e: 'addRectTable', coordinates: { x: number; y: number }): void
   (e: 'deleteTable', table: CanvasTable): void
+  (e: 'editTable', table: CanvasTable): void
   (e: 'addPersonToTable', table: CanvasTable, person: Person): void
   (
     e: 'updateTableCoordinates',
@@ -205,6 +206,7 @@ watch(selectedTable, (table) => {
       :x="contextMenu.x"
       :y="contextMenu.y"
       :table="contextMenu.table"
+      @edit="$emit('editTable', $event)"
       @delete="$emit('deleteTable', $event)"
       @resize="transformTable($event)"
     />

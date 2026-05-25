@@ -124,6 +124,7 @@ function onDragStart(e: any, person: Person) {
 }
 
 const selectedTable = ref<CanvasTable>()
+const isEditing = ref(false)
 // watch(tables, (v) => console.log({ ...v }), { deep: true })
 </script>
 
@@ -159,6 +160,12 @@ const selectedTable = ref<CanvasTable>()
             saveTables()
           }
         "
+        @edit-table="
+          (t) => {
+            isEditing = true
+            selectedTable = t
+          }
+        "
         :people="pendingPeople"
         :tables="tables"
         v-model:selected-table="selectedTable"
@@ -167,14 +174,8 @@ const selectedTable = ref<CanvasTable>()
 
     <SelectedTableSheet
       :table="selectedTable"
-      :open="!!selectedTable?.id"
-      @update:open="
-        (o) => {
-          if (!o) {
-            selectedTable = undefined
-          }
-        }
-      "
+      :open="isEditing"
+      @close="isEditing = false"
       @update-table="
         (t) => {
           updateTable({ ...t })
