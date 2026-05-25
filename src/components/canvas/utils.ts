@@ -1,9 +1,14 @@
 export const baseTableStyle = {
   fill: '#ffffff',
-  stroke: '#E6E6E6',
+  stroke: '#666666',
   strokeWidth: 1,
   cornerRadius: 10,
 }
+
+export const tableTextStyle = (isHovered: boolean) => ({
+  align: 'center',
+  fontSize: 16,
+})
 
 export const tableStyle = (isHovered: boolean) => ({
   ...baseTableStyle,
@@ -17,7 +22,7 @@ export const tableStyle = (isHovered: boolean) => ({
 
 export const baseCardStyle = {
   fill: '#ffffff',
-  stroke: '#E6E6E6',
+  stroke: '#666666',
   strokeWidth: 1,
   cornerRadius: 6,
 }

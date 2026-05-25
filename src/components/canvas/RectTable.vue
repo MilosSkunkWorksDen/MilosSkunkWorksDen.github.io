@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import type { RectTable } from './types'
 import useTableGeometry from '@/composables/useTableGeometry'
-import { tableStyle } from './utils'
+import { tableStyle, tableTextStyle } from './utils'
 import CanvasPersonCard from './CanvasPersonCard.vue'
 import { useKonvaIcon, USERS_SVG } from '@/composables/useKonvaIcon'
 
@@ -71,9 +71,7 @@ defineOptions({
       width: table.width,
       x: -table.width / 2,
       y: -10,
-      align: 'center',
-      fontSize: 15,
-      fill: '#334155',
+      ...tableTextStyle(hoveredId == table.id),
       listening: false,
     }"
   />
