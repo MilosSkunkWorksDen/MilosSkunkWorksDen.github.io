@@ -27,7 +27,9 @@ const pendingPeople = ref<Person[]>([])
 onMounted(() => {
   tables.value = tables.value.map((table: any) => ({
     ...table,
-    people: people.value.filter((p) => p?.table_id === table.id),
+    people: people.value
+      .filter((p) => p?.table_id === table.id)
+      .sort((a, b) => (a.table_order || 0) - (b.table_order || 0)),
   }))
 
   const assignedIds = new Set(tables.value.flatMap((t) => t.people.map((p) => p.id)))
@@ -83,7 +85,11 @@ function addPersonToTable(table: CanvasTable, person: Person) {
     removePersonFromTable(oldTable, person)
   }
 
-  const newPerson = { ...person, table_id: table.id }
+  const newPerson = {
+    ...person,
+    table_id: table.id,
+    table_order: table.people.length,
+  }
   updateUser(newPerson)
   saveUsers()
 

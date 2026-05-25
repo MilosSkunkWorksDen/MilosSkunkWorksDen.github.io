@@ -6,6 +6,7 @@ import type { Table } from './useTables'
 export interface Person {
   id: number
   table_id?: Table['id']
+  table_order?: number
   group?: string
   name: string
   attending: boolean

@@ -22,7 +22,9 @@ const pendingPeople = ref<Person[]>([])
 onMounted(() => {
   tables.value = tables.value.map((table: any) => ({
     ...table,
-    people: people.value.filter((p) => p?.table_id === table.id),
+    people: people.value
+      .filter((p) => p?.table_id === table.id)
+      .sort((a, b) => (a.table_order || 0) - (b.table_order || 0)),
   }))
 
   const assignedIds = new Set(tables.value.flatMap((t) => t.people.map((p) => p.id)))
@@ -69,9 +71,9 @@ function handleUpdateTable(table: Table, ev: any = null) {
   saveTables()
 
   let updated = false
-  table.people.forEach((p) => {
-    if (p.table_id !== table.id) {
-      updateUser({ ...p, table_id: table.id })
+  table.people.forEach((p, index) => {
+    if (p.table_id !== table.id || p.table_order != index) {
+      updateUser({ ...p, table_id: table.id, table_order: index })
       updated = true
     }
   })
