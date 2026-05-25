@@ -106,16 +106,12 @@ const onDragEnd = (e: any) => {
 const onTableDragged = (e: any) => {
   const id = e.target.attrs?.tableId
   const table = props.tables?.find((t) => t.id === id)
-  const node = e.target.getChildren?.()?.find((d: any) => d.attrs.elType == 'table')
 
-  if (node && table) {
+  if (id && table) {
     let pos = {
-      x: e.target.x() + node.x(),
-      y: e.target.y() + node.y(),
+      x: e.target.x(),
+      y: e.target.y(),
     }
-
-    e.target.x(0)
-    e.target.y(0)
 
     emit('updateTableCoordinates', table, pos, true)
   }
@@ -163,7 +159,13 @@ watch(selectedTable, (table) => {
         <v-group
           v-for="table in tables.filter((t) => t.type === 'circle')"
           :key="table.id"
-          :config="{ elType: 'table-group', tableId: table.id, draggable: true }"
+          :config="{
+            elType: 'table-group',
+            tableId: table.id,
+            draggable: true,
+            x: table.x,
+            y: table.y,
+          }"
         >
           <CircleTable
             v-on="tableEvents(table)"

@@ -4,6 +4,9 @@ import type { RectTable } from './types'
 import useTableGeometry from '@/composables/useTableGeometry'
 import { tableStyle } from './utils'
 import CanvasPersonCard from './CanvasPersonCard.vue'
+import { useKonvaIcon, USERS_SVG } from '@/composables/useKonvaIcon'
+
+const usersIcon = useKonvaIcon(USERS_SVG)
 
 const { generateSeatingGrid, offsetUserCardCoordinates } = useTableGeometry()
 const card_width = 150
@@ -18,7 +21,7 @@ const props = defineProps<{
 const table = computed(() => {
   const t = props.baseTable
 
-  const seating = generateSeatingGrid(t, (card_height * 3) / 4, card_height)
+  const seating = generateSeatingGrid({ ...t, x: 0, y: 0 }, (card_height * 3) / 4, card_height)
 
   return {
     ...t,
@@ -29,7 +32,7 @@ const table = computed(() => {
 
       return {
         ...p,
-        label: index + 1 + '. ' + p.name, // + '\n ' + `${seat.x.toFixed(2)} _ ${seat.y.toFixed(2)}`,
+        label: p.name, // + '\n ' + `${seat.x.toFixed(2)} _ ${seat.y.toFixed(2)}`,
         seat,
         card: {
           ...card,
@@ -53,8 +56,6 @@ defineOptions({
       elType: 'table',
       id: `table-${table.id}`,
       table: table,
-      x: table.x,
-      y: table.y,
       width: table.width,
       height: table.height,
       offsetX: table.width / 2,
@@ -66,13 +67,35 @@ defineOptions({
 
   <v-text
     :config="{
-      text: `${table.name}\n Count: ${table.people.length}`,
-      x: table.x - table.width / 2,
-      y: table.y - 10,
+      text: table.name,
       width: table.width,
+      x: -table.width / 2,
+      y: -10,
       align: 'center',
       fontSize: 15,
       fill: '#334155',
+      listening: false,
+    }"
+  />
+
+  <v-image
+    :config="{
+      image: usersIcon,
+      width: 15,
+      height: 15,
+      x: -20,
+      y: 16,
+      listening: false,
+    }"
+  />
+
+  <v-text
+    :config="{
+      text: `${table.people.length}`,
+      fontSize: 15,
+      fill: '#334155',
+      x: 0,
+      y: 16,
       listening: false,
     }"
   />
