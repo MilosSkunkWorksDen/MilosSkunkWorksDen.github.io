@@ -88,22 +88,24 @@ export function useCanvasTablesResize({ stageRef, selectedId, transformed }: Res
     if (table.type == 'rect') {
       transformed({
         ...table,
-        x: node.x(),
-        y: node.y(),
+        x: table.x + node.x(),
+        y: table.y + node.y(),
         width: table.width * scaleX,
         height: table.height * scaleY,
       })
     } else {
       transformed({
         ...table,
-        x: node.x(),
-        y: node.y(),
+        x: table.x + node.x(),
+        y: table.y + node.y(),
         width: table.width * scaleX,
       })
     }
 
     node.scaleX(1)
     node.scaleY(1)
+    node.x(0)
+    node.y(0)
   }
 
   const transformTable = (table: CanvasTable) => {

@@ -244,7 +244,13 @@ function exportPDF() {
         <v-group
           v-for="table in tables.filter((t) => t.type === 'rect')"
           :key="table.id"
-          :config="{ elType: 'table-group', tableId: table.id, draggable: true }"
+          :config="{
+            elType: 'table-group',
+            tableId: table.id,
+            draggable: true,
+            x: table.x,
+            y: table.y,
+          }"
         >
           <RectTable
             v-on="tableEvents(table)"
