@@ -44,6 +44,19 @@ const table = computed(() => {
   }
 })
 
+// Calculate how tall the top text will be
+const topTextHeight = computed(() => {
+  const text = new Konva.Text({
+    text: table.value.name,
+    width: table.value.width,
+    ...tableTextStyle(false), // pass fontSize etc
+  })
+  return text.height()
+})
+
+const topTextY = computed(() => (-1 * topTextHeight.value) / 2)
+const bottomY = computed(() => topTextHeight.value / 2 + 4)
+
 defineOptions({
   inheritAttrs: false,
 })
@@ -67,7 +80,7 @@ defineOptions({
       text: table.name,
       width: table.width,
       x: -table.width / 2,
-      y: -10,
+      y: topTextY,
       ...tableTextStyle(hoveredId == table.id),
       listening: false,
     }"
@@ -79,7 +92,7 @@ defineOptions({
       width: 15,
       height: 15,
       x: -20,
-      y: 16,
+      y: bottomY,
       listening: false,
     }"
   />
@@ -90,7 +103,7 @@ defineOptions({
       fontSize: 15,
       fill: '#334155',
       x: 0,
-      y: 16,
+      y: bottomY,
       listening: false,
     }"
   />
