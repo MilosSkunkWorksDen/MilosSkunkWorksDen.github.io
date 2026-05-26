@@ -20,12 +20,14 @@ const {
 const pendingPeople = ref<Person[]>([])
 
 onMounted(() => {
-  tables.value = tables.value.map((table: any) => ({
-    ...table,
-    people: people.value
-      .filter((p) => p?.table_id === table.id)
-      .sort((a, b) => (a.table_order || 0) - (b.table_order || 0)),
-  }))
+  tables.value = tables.value
+    .filter((t) => !t.without_people)
+    .map((table: any) => ({
+      ...table,
+      people: people.value
+        .filter((p) => p?.table_id === table.id)
+        .sort((a, b) => (a.table_order || 0) - (b.table_order || 0)),
+    }))
 
   const assignedIds = new Set(tables.value.flatMap((t) => t.people.map((p) => p.id)))
   pendingPeople.value = people.value.filter((person) => !assignedIds.has(person.id))

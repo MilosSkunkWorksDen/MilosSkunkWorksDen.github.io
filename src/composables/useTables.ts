@@ -7,6 +7,7 @@ export interface Table {
   name: string
   people: Person[]
   order?: number
+  without_people?: boolean
 }
 
 const STORAGE_KEY = 'tables'

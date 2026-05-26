@@ -77,6 +77,7 @@ defineOptions({
   />
 
   <v-image
+    v-if="!table.without_people"
     :config="{
       image: usersIcon,
       width: 15,
@@ -88,6 +89,7 @@ defineOptions({
   />
 
   <v-text
+    v-if="!table.without_people"
     :config="{
       text: `${table.people.length}`,
       fontSize: 15,

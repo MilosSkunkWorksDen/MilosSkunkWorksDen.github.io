@@ -56,7 +56,7 @@ function onDrop(e: any) {
   const person = props.people.find((p) => p.id == person_id)
   const table = shape?.attrs.table
 
-  if (table && person) {
+  if (table && !table.without_people && person) {
     emit('addPersonToTable', table, person)
   }
 }

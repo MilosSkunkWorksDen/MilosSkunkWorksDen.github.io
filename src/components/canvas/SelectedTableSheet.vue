@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { CanvasTable } from './types'
 import { ref, watch, type HtmlHTMLAttributes } from 'vue'
-
+import { Switch } from '@/components/ui/switch'
 import {
   Card,
   CardAction,
@@ -32,6 +32,7 @@ const props = withDefaults(
 
 const form = ref({
   name: props.table?.name,
+  without_people: props.table?.without_people ?? false,
 })
 
 watch(
@@ -39,6 +40,7 @@ watch(
   (t) => {
     form.value = {
       name: t?.name,
+      without_people: t?.without_people || false,
     }
   },
 )
@@ -89,6 +91,16 @@ const close = () => emit('close')
             <div class="flex flex-col space-y-1.5">
               <Label for="table-name">Name</Label>
               <Input id="table-name" v-model="form.name" />
+            </div>
+            <div
+              :class="['flex items-center space-x-2', { 'opacity-30': table.people.length > 0 }]"
+            >
+              <Label for="without-people">Without People</Label>
+              <Switch
+                :disabled="table.people.length > 0"
+                v-model="form.without_people"
+                id="without-people"
+              />
             </div>
           </div>
         </form>
