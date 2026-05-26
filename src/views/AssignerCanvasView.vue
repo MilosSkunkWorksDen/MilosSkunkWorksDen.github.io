@@ -6,7 +6,7 @@ import Button from '@/components/ui/button/Button.vue'
 import usePeople, { type Person } from '@/composables/usePeople'
 import useTables, { type Table } from '@/composables/useTables'
 import { Plus } from '@lucide/vue'
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import draggable from 'vuedraggable'
 import useCanvasTables from '@/composables/useCanvasTables'
 import type { CanvasTable } from '@/components/canvas/types'
@@ -123,9 +123,35 @@ function onDragStart(e: any, person: Person) {
   e.dataTransfer.setData('person_id', person.id)
 }
 
-const selectedTable = ref<CanvasTable>()
 const isEditing = ref(false)
-// watch(tables, (v) => console.log({ ...v }), { deep: true })
+const selectedTableId = ref()
+const selectedTable = computed(() => {
+  return selectedTableId.value ? tables.value.find((t) => t.id == selectedTableId.value) : undefined
+})
+
+function handleUpdateTable(table: CanvasTable, ev: any = null) {
+  updateTable({ ...table })
+
+  let updated = false
+  table.people.forEach((p, index) => {
+    if (p.table_id !== table.id || p.table_order != index) {
+      updateUser({ ...p, table_id: table.id, table_order: index })
+      updated = true
+    }
+  })
+
+  if (ev?.removed) {
+    updated = true
+    updateUser({ ...ev.removed.element, table_id: undefined })
+    updateTable({ ...table, people: table.people.filter((p) => p.id != ev.removed.element.id) })
+  }
+
+  if (updated) {
+    saveUsers()
+  }
+
+  saveTables()
+}
 </script>
 
 <template>
@@ -154,21 +180,16 @@ const isEditing = ref(false)
         @delete-table="deleteTable"
         @add-person-to-table="addPersonToTable"
         @update-table-coordinates="updateTableCoordinates"
-        @update-table="
-          (t) => {
-            updateTable({ ...t })
-            saveTables()
-          }
-        "
+        @update-table="handleUpdateTable"
         @edit-table="
           (t) => {
             isEditing = true
-            selectedTable = t
+            selectedTableId = t.id
           }
         "
         :people="pendingPeople"
         :tables="tables"
-        v-model:selected-table="selectedTable"
+        @update:selected-id="selectedTableId = $event"
       />
     </div>
 
@@ -176,12 +197,7 @@ const isEditing = ref(false)
       :table="selectedTable"
       :open="isEditing"
       @close="isEditing = false"
-      @update-table="
-        (t) => {
-          updateTable({ ...t })
-          saveTables()
-        }
-      "
+      @update-table="handleUpdateTable"
     />
     <!-- <div class="absolute bg-red-500 right-0 top-5 bottom-5">
       {{ selectedTable.name }}

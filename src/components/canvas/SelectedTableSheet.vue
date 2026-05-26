@@ -15,7 +15,9 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { X } from 'lucide-vue-next'
+import { Trash, X } from 'lucide-vue-next'
+import PersonComponent from '../Person.vue'
+import draggable from 'vuedraggable'
 
 const props = withDefaults(
   defineProps<{
@@ -46,11 +48,17 @@ watch(
 )
 
 const emit = defineEmits<{
-  (e: 'updateTable', table: CanvasTable): void
+  (e: 'updateTable', table: CanvasTable, ev?: { added?: any; removed?: any }): void
   (e: 'close'): void
 }>()
 
 const close = () => emit('close')
+
+function handlePeopleChange(evt: { added?: any; removed?: any }) {
+  if (props.table) {
+    emit('updateTable', props.table, evt)
+  }
+}
 </script>
 
 <template>
@@ -85,23 +93,46 @@ const close = () => emit('close')
         </CardDescription>
         <CardAction> </CardAction>
       </CardHeader>
-      <CardContent class="flex-1">
-        <form>
-          <div class="grid w-full items-center gap-4">
-            <div class="flex flex-col space-y-1.5">
-              <Label for="table-name">Name</Label>
-              <Input id="table-name" v-model="form.name" />
-            </div>
-            <div
-              :class="['flex items-center space-x-2', { 'opacity-30': table.people.length > 0 }]"
+      <CardContent class="px-0! flex-1 overflow-hidden">
+        <form class="h-full w-full flex flex-col gap-4">
+          <div class="px-6 flex flex-col space-y-1.5">
+            <Label for="table-name">Name</Label>
+            <Input id="table-name" v-model="form.name" />
+          </div>
+          <div :class="['px-6 flex items-center space-x-2']">
+            <Label
+              for="without-people"
+              :class="{ 'opacity-50 cursor-not-allowed': table.people.length > 0 }"
+              >Without People</Label
             >
-              <Label for="without-people">Without People</Label>
-              <Switch
-                :disabled="table.people.length > 0"
-                v-model="form.without_people"
-                id="without-people"
-              />
-            </div>
+            <Switch
+              :disabled="table.people.length > 0"
+              v-model="form.without_people"
+              id="without-people"
+            />
+          </div>
+
+          <div class="pl-4 flex-1 flex flex-col overflow-y-auto scrollbar-thin pb-1">
+            <draggable
+              v-model="table.people"
+              item-key="name"
+              class=""
+              drag-class="draggable-person-drag"
+              ghost-class="draggable-person-ghost"
+              chosen-class="draggable-person-chosen"
+              group="assign-people-to-tables"
+              @change="handlePeopleChange"
+            >
+              <template #item="{ element, index }">
+                <div class="item relative hover:bg-neutral-50">
+                  <PersonComponent class="pr-6" :person="element" :key="element.name" />
+                  <Trash
+                    @click="handlePeopleChange({ removed: { element } })"
+                    class="size-4 absolute right-2 top-1/2 -translate-y-1/2 text-destructive cursor-pointer"
+                  />
+                </div>
+              </template>
+            </draggable>
           </div>
         </form>
       </CardContent>
@@ -113,7 +144,7 @@ const close = () => emit('close')
         >
           Save
         </Button>
-        <Button @click="close" class="w-full" variant="outline"> Close </Button>
+        <!-- <Button @click="close" class="w-full" variant="outline"> Close </Button> -->
       </CardFooter>
     </template>
     <template v-else>

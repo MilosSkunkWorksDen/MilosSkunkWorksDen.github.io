@@ -31,6 +31,7 @@ const emit = defineEmits<{
     save: boolean,
   ): void
   (e: 'updateTable', table: CanvasTable): void
+  (e: 'update:selectedId', id?: CanvasTable['id']): void
 }>()
 
 const stageRef = ref()
@@ -119,12 +120,12 @@ const onTableDragged = (e: any) => {
   }
 }
 
-const selectedTable = defineModel<CanvasTable>('selectedTable')
-watch(selectedId, (id) => {
-  selectedTable.value = id ? props.tables?.find((t) => t.id === id) : undefined
+const selectedTable = computed(() => {
+  return selectedId.value ? props.tables.find((t) => t.id == selectedId.value) : undefined
 })
-watch(selectedTable, (table) => {
-  selectedId.value = table?.id
+
+watch(selectedId, (v) => {
+  emit('update:selectedId', v)
 })
 
 function exportPDF() {
