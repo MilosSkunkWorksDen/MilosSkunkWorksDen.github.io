@@ -1,3 +1,4 @@
+import jsPDF from 'jspdf'
 import { onMounted, onUnmounted, ref, type Ref } from 'vue'
 
 export function useSize(sizeRef: Ref) {
@@ -157,6 +158,18 @@ export function useView(stageRef: Ref) {
     window.removeEventListener('keyup', onKeyUp)
   })
 
+  function fitView() {
+    const stage = stageRef.value.getStage()
+    fitStage(stage)
+
+    viewConfig.value = {
+      scaleX: stage.scaleX(),
+      scaleY: stage.scaleY(),
+      x: stage.x(),
+      y: stage.y(),
+    }
+  }
+
   return {
     viewConfig,
     onWheel,
@@ -165,5 +178,72 @@ export function useView(stageRef: Ref) {
     onMouseDown,
     onMouseUp,
     onMouseMove,
+    fitView,
   }
+}
+
+export function fitStage(stage: any, padding: number = 20) {
+  const container = stage.container()
+  const containerWidth = container.offsetWidth
+  const containerHeight = container.offsetHeight
+
+  // Get the bounding box of all content
+  const layer = stage.findOne('Layer')
+  const contentRect = layer.getClientRect({ relativeTo: stage })
+
+  // Calculate scale to fit content + padding
+  const scaleX = (containerWidth - padding * 2) / contentRect.width
+  const scaleY = (containerHeight - padding * 2) / contentRect.height
+  const scale = Math.min(scaleX, scaleY) // uniform scale
+
+  // Center the content
+  const newX = (containerWidth - contentRect.width * scale) / 2 - contentRect.x * scale
+  const newY = (containerHeight - contentRect.height * scale) / 2 - contentRect.y * scale
+
+  stage.scale({ x: scale, y: scale })
+  stage.position({ x: newX, y: newY })
+  stage.batchDraw()
+
+  return stage
+}
+
+export function exportStageToPDF(stage: any, padding: number = 20) {
+  const prevScale = { x: stage.scaleX(), y: stage.scaleY() }
+  const prevPos = { x: stage.x(), y: stage.y() }
+  const prevWidth = stage.width()
+  const prevHeight = stage.height()
+
+  stage.scale({ x: 1, y: 1 })
+  stage.position({ x: 0, y: 0 })
+
+  const layer = stage.findOne('Layer')
+  const contentRect = layer.getClientRect()
+
+  stage.position({ x: -contentRect.x + padding, y: -contentRect.y + padding })
+  stage.width(contentRect.width + padding * 2)
+  stage.height(contentRect.height + padding * 2)
+  stage.batchDraw()
+
+  const dataURL = stage.toDataURL({ pixelRatio: 1 })
+
+  stage.scale(prevScale)
+  stage.position(prevPos)
+  stage.width(prevWidth)
+  stage.height(prevHeight)
+  stage.batchDraw()
+
+  const pdf = new jsPDF({
+    orientation: contentRect.width > contentRect.height ? 'landscape' : 'portrait',
+    unit: 'px',
+    format: [contentRect.width + padding * 2, contentRect.height + padding * 2],
+  })
+  pdf.addImage(
+    dataURL,
+    'PNG',
+    0,
+    0,
+    contentRect.width + padding * 2,
+    contentRect.height + padding * 2,
+  )
+  pdf.save('export.pdf')
 }

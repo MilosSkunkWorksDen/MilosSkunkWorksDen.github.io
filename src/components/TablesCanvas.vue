@@ -6,7 +6,7 @@ import type { Person } from '@/composables/usePeople'
 import type { CanvasTable, ContextMenu } from './canvas/types'
 import PersonComponent from '@/components/Person.vue'
 import useTableGeometry from '@/composables/useTableGeometry'
-import { useSize, useView } from '@/composables/useCanvas'
+import { exportStageToPDF, useSize, useView } from '@/composables/useCanvas'
 import { useCreateTablesActions } from '@/composables/useCreateTablesActions'
 import CircleTable from './canvas/CircleTable.vue'
 import RectTable from './canvas/RectTable.vue'
@@ -129,65 +129,7 @@ watch(selectedTable, (table) => {
 
 function exportPDF() {
   const stage = stageRef.value.getNode()
-  const layer = layerRef.value.getNode()
-
-  const padding = 40 // adjust as needed
-
-  const contentBox = layer.getClientRect({ relativeTo: stage })
-
-  const container = document.createElement('div')
-  container.style.display = 'none'
-  document.body.appendChild(container)
-
-  const offscreen = new Konva.Stage({
-    container,
-    width: contentBox.width + padding * 2,
-    height: contentBox.height + padding * 2,
-  })
-
-  const clone = layer.clone()
-  clone.x(-contentBox.x + padding)
-  clone.y(-contentBox.y + padding)
-  offscreen.add(clone)
-
-  const bg = new Konva.Rect({
-    x: contentBox.x - padding,
-    y: contentBox.y - padding,
-    width: contentBox.width + padding * 2,
-    height: contentBox.height + padding * 2,
-    fill: 'white',
-    listening: false,
-  })
-  clone.add(bg)
-  bg.moveToBottom()
-  clone.batchDraw()
-
-  offscreen.toBlob({
-    mimeType: 'image/jpeg',
-    quality: 0.95,
-    pixelRatio: 3,
-    callback(blob) {
-      offscreen.destroy()
-      document.body.removeChild(container)
-
-      const reader = new FileReader()
-      reader.onload = () => {
-        const imgData = reader.result
-        const w = contentBox.width + padding * 2
-        const h = contentBox.height + padding * 2
-
-        const pdf = new jsPDF({
-          orientation: w > h ? 'landscape' : 'portrait',
-          unit: 'px',
-          format: [w, h],
-        })
-
-        pdf.addImage(imgData, 'JPEG', 0, 0, w, h)
-        pdf.save('export.pdf')
-      }
-      reader.readAsDataURL(blob)
-    },
-  })
+  exportStageToPDF(stage)
 }
 </script>
 

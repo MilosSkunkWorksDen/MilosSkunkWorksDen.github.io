@@ -7,7 +7,7 @@ export const baseTableStyle = {
 
 export const tableTextStyle = (isHovered: boolean) => ({
   align: 'center',
-  fontSize: 16,
+  fontSize: 20,
 })
 
 export const tableStyle = (isHovered: boolean) => ({
